@@ -220,7 +220,7 @@ export function parseSimplePaste(text, mapping) {
   return { rows, errors };
 }
 
-export function validateImportRows(rows, context, expectedKind, allowedHostsByName) {
+export function validateImportRows(rows, context, expectedKind) {
   const seen = new Set();
   const results = [];
 

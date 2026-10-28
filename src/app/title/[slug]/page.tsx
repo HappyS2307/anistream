@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StreamingPlayer } from "@/components/streaming-player";
 import { SiteFrame } from "@/components/site-frame";
+import { getDemoPlayback } from "@/data/demo-playback";
 import {
   getSampleTitle,
   sampleCollections,
@@ -75,6 +77,11 @@ export default async function TitlePage({
                 <h2 id="synopsis-heading">Synopsis</h2>
                 <p>{title.description}</p>
               </section>
+
+              <StreamingPlayer
+                title={title.title}
+                episodes={getDemoPlayback(title.slug)}
+              />
 
               <p className="title-detail__note">
                 This is sample catalogue content. No playback links or episode

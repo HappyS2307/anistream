@@ -3,7 +3,6 @@ import { SiteFrame } from "@/components/site-frame";
 import { getLinkImportContext } from "@/lib/data/admin";
 import { BulkLinkImportForm } from "./bulk-link-import-form";
 
-export const dynamic = "force-dynamic";
 
 export default async function AdminBulkImportPage() {
   const access = await getLinkImportContext();

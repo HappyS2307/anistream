@@ -5,10 +5,6 @@ import {
 } from "@/lib/admin/bulk-link-import.mjs";
 import { getLinkImportContext } from "@/lib/data/admin";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-type ImportKind = "stream" | "download";
 
 function jsonError(status: number, error: string) {
   return NextResponse.json({ error }, { status });

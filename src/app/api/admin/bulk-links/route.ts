@@ -6,6 +6,16 @@ import {
 import { getLinkImportContext } from "@/lib/data/admin";
 
 
+type NormalizedImport = {
+  contentId: string | null;
+  episodeId: string | null;
+  serverId: string | null;
+  providerId: string | null;
+  url: string | null;
+  quality: string | null;
+  audioLanguage: string | null;
+};
+
 function jsonError(status: number, error: string) {
   return NextResponse.json({ error }, { status });
 }
@@ -87,7 +97,7 @@ export async function POST(request: Request) {
       continue;
     }
 
-    const normalized = result.normalized;
+    const normalized = result.normalized as NormalizedImport | null;
     if (!normalized) {
       results.push({ row: result.row, status: "failed", message: "The row could not be normalized." });
       failed += 1;

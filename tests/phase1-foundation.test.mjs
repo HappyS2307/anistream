@@ -252,3 +252,17 @@ test("database source validators bind HTTPS URLs to the exact configured provide
   assert.match(adminMigration, /create trigger streaming_sources_validate[\s\S]*?before insert or update/i);
   assert.match(adminMigration, /create trigger download_sources_validate[\s\S]*?before insert or update/i);
 });
+
+
+test("admin content search checks permission first and safely supports Unicode titles", async () => {
+  const searchRoute = await readFile(
+    new URL("../src/app/api/admin/content-search/route.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.ok(searchRoute.indexOf('getAdminAccess("links.import")') < searchRoute.indexOf('.from("content")'));
+  assert.match(searchRoute, /query\.replace\(\/\[\^\\p\{L\}\\p\{N\}\\s-\]\/gu, " "\)/);
+  assert.match(searchRoute, /const rawPage = url\.searchParams\.get\("page"\) \?\? "0"/);
+  assert.match(searchRoute, /Number\.isSafeInteger\(parsedPage\)/);
+  assert.match(searchRoute, /Cache-Control", "private, no-store, max-age=0"/);
+});

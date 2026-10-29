@@ -89,59 +89,60 @@ export type LinkImportContextResult =
   | Exclude<AdminAccess, { status: "authorized" }>
   | { status: "ready"; client: AdminClient; userId: string; context: LinkImportContext };
 
-export async function getLinkImportContext(): Promise<LinkImportContextResult> {
+export async function getLinkImportContext(contentSlugs: string[] = []): Promise<LinkImportContextResult> {
   const access = await getAdminAccess("links.import");
 
-  if (access.status !== "authorized") {
-    return access;
-  }
+  if (access.status !== "authorized") return access;
 
-  const [contentResult, seasonResult, episodeResult, serverResult, providerResult] =
-    await Promise.all([
-      access.client
-        .from("content")
-        .select("id,slug,kind,title,publication_status")
-        .order("title"),
-      access.client
-        .from("seasons")
-        .select("id,content_id,season_number")
-        .order("season_number"),
-      access.client
-        .from("episodes")
-        .select("id,season_id,episode_number,title")
-        .order("episode_number"),
-      access.client
-        .from("streaming_servers")
-        .select("id,name,hostname,protection_enabled")
-        .eq("enabled", true)
-        .order("name"),
-      access.client
-        .from("download_providers")
-        .select("id,name,hostname")
-        .eq("enabled", true)
-        .order("name"),
-    ]);
+  const uniqueSlugs = [...new Set(contentSlugs.map((slug) => slug.trim()).filter(Boolean))].slice(0, 100);
+  const [contentResult, serverResult, providerResult] = await Promise.all([
+    uniqueSlugs.length
+      ? access.client.from("content")
+          .select("id,slug,kind,title,publication_status")
+          .in("slug", uniqueSlugs)
+      : Promise.resolve({ data: [], error: null }),
+    access.client.from("streaming_servers")
+      .select("id,name,hostname,protection_enabled")
+      .eq("enabled", true)
+      .order("name"),
+    access.client.from("download_providers")
+      .select("id,name,hostname")
+      .eq("enabled", true)
+      .order("name"),
+  ]);
 
-  if (
-    contentResult.error ||
-    seasonResult.error ||
-    episodeResult.error ||
-    serverResult.error ||
-    providerResult.error
-  ) {
+  if (contentResult.error || serverResult.error || providerResult.error) {
     return { status: "schema-unavailable" };
   }
+
+  const contentIds = (contentResult.data ?? []).map((item) => item.id);
+  const seasonResult = contentIds.length
+    ? await access.client.from("seasons")
+        .select("id,content_id,season_number")
+        .in("content_id", contentIds)
+    : { data: [], error: null };
+
+  if (seasonResult.error) return { status: "schema-unavailable" };
+
+  const seasonIds = (seasonResult.data ?? []).map((item) => item.id);
+  const episodeResult = seasonIds.length
+    ? await access.client.from("episodes")
+        .select("id,season_id,episode_number,title")
+        .in("season_id", seasonIds)
+    : { data: [], error: null };
+
+  if (episodeResult.error) return { status: "schema-unavailable" };
 
   return {
     status: "ready",
     client: access.client,
     userId: access.userId,
     context: {
-      contents: contentResult.data,
-      seasons: seasonResult.data,
-      episodes: episodeResult.data,
-      streamingServers: serverResult.data,
-      downloadProviders: providerResult.data,
+      contents: contentResult.data ?? [],
+      seasons: seasonResult.data ?? [],
+      episodes: episodeResult.data ?? [],
+      streamingServers: serverResult.data ?? [],
+      downloadProviders: providerResult.data ?? [],
     },
   };
 }

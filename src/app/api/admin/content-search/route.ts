@@ -12,7 +12,9 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const query = (url.searchParams.get("q") ?? "").trim().slice(0, 100);
-  const page = Math.max(0, Math.min(10_000, Number.parseInt(url.searchParams.get("page") ?? "0", 10) || 0));
+  const rawPage = url.searchParams.get("page") ?? "0";
+  const parsedPage = /^\d+$/.test(rawPage) ? Number(rawPage) : 0;
+  const page = Math.max(0, Math.min(10_000, Number.isSafeInteger(parsedPage) ? parsedPage : 0));
   const from = page * PAGE_SIZE;
   const to = from + PAGE_SIZE;
 
@@ -23,7 +25,7 @@ export async function GET(request: Request) {
     .range(from, to - 1);
 
   if (query) {
-    const escaped = query.replace(/[^a-zA-Z0-9\s'-]/g, " ").replace(/\s+/g, " ").trim();
+    const escaped = query.replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim();
     if (!escaped) return NextResponse.json({ items: [], page, pageSize: PAGE_SIZE, hasMore: false });
     requestQuery = requestQuery.or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`);
   }

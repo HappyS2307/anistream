@@ -9,7 +9,11 @@ import { getLinkImportContext } from "@/lib/data/admin";
 type NormalizedImport = {
   contentId: string | null;
   episodeId: string | null;
-  serverId: string;\n  providerId: string;\n  url: string;\n  quality: string;\n  audioLanguage: string;
+  serverId: string;
+  providerId: string;
+  url: string;
+  quality: string;
+  audioLanguage: string;
 };
 
 function jsonError(status: number, error: string) {

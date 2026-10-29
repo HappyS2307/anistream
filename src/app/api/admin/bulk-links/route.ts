@@ -20,8 +20,8 @@ function jsonError(status: number, error: string) {
   return NextResponse.json({ error }, { status });
 }
 
-function safeText(value: unknown, max = 4096): string {
-  return typeof value === "string" ? value.trim().slice(0, max) : "";
+function safeText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export async function POST(request: Request) {
@@ -36,7 +36,11 @@ export async function POST(request: Request) {
   try {
     const contentLength = Number(request.headers.get("content-length") ?? 0);
     if (contentLength > 1_100_000) return jsonError(413, "Request body exceeds the 1 MB limit.");
-    payload = await request.json();
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > 1_100_000) {
+      return jsonError(413, "Request body exceeds the 1 MB limit.");
+    }
+    payload = JSON.parse(rawBody);
   } catch {
     return jsonError(400, "Request body must be valid JSON.");
   }
@@ -63,7 +67,7 @@ export async function POST(request: Request) {
       : {};
     return {
       row: Number.isInteger(row.row) && Number(row.row) > 0 ? Number(row.row) : index + 1,
-      contentSlug: safeText(row.contentSlug, 160),
+      contentSlug: safeText(row.contentSlug),
       seasonNumber: row.seasonNumber === null || row.seasonNumber === undefined || row.seasonNumber === ""
         ? null
         : Number(row.seasonNumber),
@@ -71,11 +75,11 @@ export async function POST(request: Request) {
         ? null
         : Number(row.episodeNumber),
       kind,
-      serverName: safeText(row.serverName, 80),
-      providerName: safeText(row.providerName, 80),
-      quality: safeText(row.quality, 40),
-      audioLanguage: safeText(row.audioLanguage, 40),
-      url: safeText(row.url, 4096),
+      serverName: safeText(row.serverName),
+      providerName: safeText(row.providerName),
+      quality: safeText(row.quality),
+      audioLanguage: safeText(row.audioLanguage),
+      url: safeText(row.url),
     };
   });
 

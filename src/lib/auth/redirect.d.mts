@@ -1,0 +1,1 @@
+export function getSafeRedirectPath(value: unknown, fallback?: string): string;

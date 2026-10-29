@@ -204,3 +204,21 @@ test("sample routes and content remain present", async () => {
   assert.match(sampleContent, /export const sampleCollections/);
   assert.match(sampleContent, /export function searchSampleTitles/);
 });
+
+test("admin migration limits Super Admin bootstrap to privileged setup and guards the final admin", async () => {
+  const adminMigration = await readFile(
+    new URL("../supabase/migrations/20261028000100_admin_bulk_links.sql", import.meta.url),
+    "utf8",
+  );
+  const guardMigration = await readFile(
+    new URL("../supabase/migrations/20261029000100_harden_super_admin_guard.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(adminMigration, /create unique index admin_memberships_single_super_admin_idx[\s\S]*?where role = 'super_admin'/i);
+  assert.match(adminMigration, /create policy admin_memberships_insert_admin[\s\S]*?with check \([\s\S]*?role = 'admin'[\s\S]*?public\.is_super_admin\(\)/i);
+  assert.doesNotMatch(adminMigration, /create policy admin_memberships_insert_super_admin/i);
+  assert.match(guardMigration, /if tg_op = 'DELETE' then[\s\S]*?if not exists/i);
+  assert.match(guardMigration, /elsif new\.role <> 'super_admin' then[\s\S]*?if not exists/i);
+  assert.match(guardMigration, /The final Super Admin cannot be removed or demoted\./);
+});

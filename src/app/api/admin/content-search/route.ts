@@ -3,12 +3,18 @@ import { getAdminAccess } from "@/lib/data/admin";
 
 const PAGE_SIZE = 25;
 
+function privateJson(body: unknown, init: ResponseInit = {}) {
+  const headers = new Headers(init.headers);
+  headers.set("Cache-Control", "private, no-store, max-age=0");
+  return privateJson(body, { ...init, headers });
+}
+
 export async function GET(request: Request) {
   const access = await getAdminAccess("links.import");
-  if (access.status === "unconfigured") return NextResponse.json({ error: "Authentication is not configured." }, { status: 503 });
-  if (access.status === "unauthenticated") return NextResponse.json({ error: "Sign in is required." }, { status: 401 });
-  if (access.status === "forbidden") return NextResponse.json({ error: "You do not have permission to search content." }, { status: 403 });
-  if (access.status !== "authorized") return NextResponse.json({ error: "Admin data is unavailable." }, { status: 503 });
+  if (access.status === "unconfigured") return privateJson({ error: "Authentication is not configured." }, { status: 503 });
+  if (access.status === "unauthenticated") return privateJson({ error: "Sign in is required." }, { status: 401 });
+  if (access.status === "forbidden") return privateJson({ error: "You do not have permission to search content." }, { status: 403 });
+  if (access.status !== "authorized") return privateJson({ error: "Admin data is unavailable." }, { status: 503 });
 
   const url = new URL(request.url);
   const query = (url.searchParams.get("q") ?? "").trim().slice(0, 100);
@@ -26,18 +32,18 @@ export async function GET(request: Request) {
 
   if (query) {
     const escaped = query.replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim();
-    if (!escaped) return NextResponse.json({ items: [], page, pageSize: PAGE_SIZE, hasMore: false });
+    if (!escaped) return privateJson({ items: [], page, pageSize: PAGE_SIZE, hasMore: false });
     requestQuery = requestQuery.or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`);
   }
 
   const result = await requestQuery;
-  if (result.error) return NextResponse.json({ error: "Content search is unavailable." }, { status: 503 });
+  if (result.error) return privateJson({ error: "Content search is unavailable." }, { status: 503 });
 
   const items = result.data ?? [];
-  return NextResponse.json({
+  return privateJson({
     items: items.map(({ slug, title, kind }) => ({ slug, title, kind })),
     page,
     pageSize: PAGE_SIZE,
     hasMore: items.length === PAGE_SIZE,
-  }, { headers: new Headers([["Cache-Control", "private, no-store, max-age=0"]]) });
+  });
 }

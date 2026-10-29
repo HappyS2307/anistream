@@ -6,7 +6,7 @@ const PAGE_SIZE = 25;
 function privateJson(body: unknown, init: ResponseInit = {}) {
   const headers = new Headers(init.headers);
   headers.set("Cache-Control", "private, no-store, max-age=0");
-  return privateJson(body, { ...init, headers });
+  return NextResponse.json(body, { ...init, headers });
 }
 
 export async function GET(request: Request) {

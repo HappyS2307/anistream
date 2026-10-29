@@ -3,7 +3,7 @@ import {
   MAX_IMPORT_RECORDS,
   validateImportRows,
 } from "@/lib/admin/bulk-link-import.mjs";
-import { getLinkImportContext } from "@/lib/data/admin";
+import { getAdminAccess, getLinkImportContext } from "@/lib/data/admin";
 
 
 type NormalizedImport = {
@@ -25,12 +25,12 @@ function safeText(value: unknown, max = 4096): string {
 }
 
 export async function POST(request: Request) {
-  const access = await getLinkImportContext();
+  const access = await getAdminAccess("links.import");
 
   if (access.status === "unconfigured") return jsonError(503, "Authentication is not configured.");
   if (access.status === "unauthenticated") return jsonError(401, "Sign in is required.");
   if (access.status === "forbidden") return jsonError(403, "You do not have permission to import links.");
-  if (access.status !== "ready") return jsonError(503, "Import schema is unavailable.");
+  if (access.status !== "authorized") return jsonError(503, "Admin access is unavailable.");
 
   let payload: unknown;
   try {
@@ -79,7 +79,14 @@ export async function POST(request: Request) {
     };
   });
 
-  const validation = validateImportRows(rows, access.context, kind);
+  const contextResult = await getLinkImportContext([...new Set(rows.map((row) => row.contentSlug))]);
+  if (contextResult.status !== "ready") {
+    if (contextResult.status === "forbidden") return jsonError(403, "You do not have permission to import links.");
+    if (contextResult.status === "unauthenticated") return jsonError(401, "Sign in is required.");
+    return jsonError(503, "Import data is unavailable.");
+  }
+
+  const validation = validateImportRows(rows, contextResult.context, kind);
   const results = [];
   let imported = 0;
   let skipped = 0;
@@ -105,14 +112,14 @@ export async function POST(request: Request) {
     }
 
     const insertResult = kind === "stream"
-      ? await access.client.from("streaming_sources").insert({
+      ? await contextResult.client.from("streaming_sources").insert({
           content_id: normalized.contentId,
           episode_id: normalized.episodeId,
           server_id: normalized.serverId,
           embed_url: normalized.url,
-          created_by: access.userId,
+          created_by: contextResult.userId,
         })
-      : await access.client.from("download_sources").insert({
+      : await contextResult.client.from("download_sources").insert({
           content_id: normalized.contentId,
           episode_id: normalized.episodeId,
           provider_id: normalized.providerId,
@@ -136,8 +143,8 @@ export async function POST(request: Request) {
 
   const total = imported + skipped + failed;
   const status = failed === 0 ? "completed" : imported + skipped > 0 ? "partial" : "failed";
-  const history = await access.client.from("import_history").insert({
-    actor_id: access.userId,
+  const history = await contextResult.client.from("import_history").insert({
+    actor_id: contextResult.userId,
     import_kind: kind,
     status,
     records_total: total,

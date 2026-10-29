@@ -222,3 +222,33 @@ test("admin migration limits Super Admin bootstrap to privileged setup and guard
   assert.match(guardMigration, /elsif new\.role <> 'super_admin' then[\s\S]*?if not exists/i);
   assert.match(guardMigration, /The final Super Admin cannot be removed or demoted\./);
 });
+
+
+test("admin link tables revoke broad access and require scoped permissions", async () => {
+  const adminMigration = await readFile(
+    new URL("../supabase/migrations/20261028000100_admin_bulk_links.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(adminMigration, /alter table public\.admin_memberships enable row level security/i);
+  assert.match(adminMigration, /revoke all on table[\s\S]*?public\.import_history[\s\S]*?from public, anon, authenticated/i);
+  assert.match(adminMigration, /create policy streaming_sources_admin_manage[\s\S]*?public\.has_admin_permission\('links\.import'\)/i);
+  assert.match(adminMigration, /create policy download_sources_admin_manage[\s\S]*?public\.has_admin_permission\('links\.import'\)/i);
+  assert.match(adminMigration, /create policy import_history_insert_actor_admin[\s\S]*?actor_id = \(select auth\.uid\(\)\)[\s\S]*?public\.has_admin_permission\('links\.import'\)/i);
+  assert.match(adminMigration, /create policy streaming_sources_select_published[\s\S]*?server\.enabled[\s\S]*?parent\.publication_status = 'published'/i);
+  assert.match(adminMigration, /create policy download_sources_select_published[\s\S]*?provider\.enabled[\s\S]*?parent\.publication_status = 'published'/i);
+});
+
+test("database source validators bind HTTPS URLs to the exact configured provider host", async () => {
+  const adminMigration = await readFile(
+    new URL("../supabase/migrations/20261028000100_admin_bulk_links.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(adminMigration, /create function public\.validate_streaming_source\(\)[\s\S]*?url_prefix := 'https:\/\/' \|\| allowed_hostname/i);
+  assert.match(adminMigration, /create function public\.validate_download_source\(\)[\s\S]*?url_prefix := 'https:\/\/' \|\| allowed_hostname/i);
+  assert.match(adminMigration, /The source URL must use HTTPS and the configured server hostname\./);
+  assert.match(adminMigration, /The download URL must use HTTPS and the configured provider hostname\./);
+  assert.match(adminMigration, /create trigger streaming_sources_validate[\s\S]*?before insert or update/i);
+  assert.match(adminMigration, /create trigger download_sources_validate[\s\S]*?before insert or update/i);
+});

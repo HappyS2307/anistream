@@ -39,5 +39,5 @@ export async function GET(request: Request) {
     page,
     pageSize: PAGE_SIZE,
     hasMore: items.length === PAGE_SIZE,
-  }, { headers: { "Cache-Control": "private, no-store, max-age=0" } });
+  }, { headers: new Headers([["Cache-Control", "private, no-store, max-age=0"]]) });
 }

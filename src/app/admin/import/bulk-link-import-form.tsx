@@ -12,7 +12,12 @@ type Props = {
 
 export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const [kind, setKind] = useState<"stream" | "download">("stream");
+  const [contentOptions, setContentOptions] = useState(contents);
   const [slug, setSlug] = useState(contents[0]?.slug ?? "");
+  const [contentSearch, setContentSearch] = useState("");
+  const [searchPage, setSearchPage] = useState(0);
+  const [searchHasMore, setSearchHasMore] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [season, setSeason] = useState("1");
   const [startEpisode, setStartEpisode] = useState("1");
   const [serverName, setServerName] = useState(servers[0]?.name ?? "");
@@ -21,7 +26,32 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [results, setResults] = useState<Array<{row:number;status:string;message:string}>>([]);
-  const selected = contents.find((item) => item.slug === slug);
+  const selected = contentOptions.find((item) => item.slug === slug) ?? contents.find((item) => item.slug === slug);
+
+  async function searchContent(append = false) {
+    setSearching(true);
+    setNotice("");
+    const nextPage = append ? searchPage + 1 : 0;
+    try {
+      const params = new URLSearchParams({ q: contentSearch.trim(), page: String(nextPage) });
+      const response = await fetch(`/api/admin/content-search?${params.toString()}`, { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) {
+        setNotice(payload.error ?? "Content search failed.");
+        return;
+      }
+      const items = Array.isArray(payload.items) ? payload.items as Array<{ slug: string; title: string; kind: string }> : [];
+      setContentOptions((current) => append ? [...current, ...items.filter((item) => !current.some((existing) => existing.slug === item.slug))] : items);
+      setSearchPage(nextPage);
+      setSearchHasMore(Boolean(payload.hasMore));
+      if (!append && items.length) setSlug(items[0].slug);
+      if (!items.length && !append) setNotice("No titles found. Try another search.");
+    } catch {
+      setNotice("Network error while searching titles.");
+    } finally {
+      setSearching(false);
+    }
+  }
   const parsed = useMemo(() => parseSimplePaste(content, {
     kind, contentSlug: slug, contentKind: selected?.kind ?? "",
     seasonNumber: season, startingEpisode: startEpisode, serverName, providerName,
@@ -72,9 +102,16 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
             <option value="stream">Streaming links</option><option value="download">Download links</option>
           </select>
         </label>
+        <label>Search titles
+          <input className="form-control" value={contentSearch} onChange={(e) => setContentSearch(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void searchContent(false); } }} placeholder="Search by title or slug" style={{ display: "block", width: "100%", marginTop: 6 }} />
+        </label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <button className="button" type="button" disabled={searching} onClick={() => void searchContent(false)}>{searching ? "Searching…" : "Search titles"}</button>
+          {searchHasMore && <button className="button" type="button" disabled={searching} onClick={() => void searchContent(true)}>Load 25 more</button>}
+        </div>
         <label>Title
           <select className="form-control" value={slug} onChange={(e) => setSlug(e.target.value)} style={{ display: "block", width: "100%", marginTop: 6 }}>
-            {contents.map((item) => <option key={item.slug} value={item.slug}>{item.title} ({item.kind})</option>)}
+            {contentOptions.map((item) => <option key={item.slug} value={item.slug}>{item.title} ({item.kind})</option>)}
           </select>
         </label>
         {selected?.kind !== "movie" && <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
@@ -95,7 +132,7 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
         </label>
         <div style={{ color: "var(--muted)", fontSize: 13 }}>{parsed.rows.length} row(s) parsed · {parsed.errors.length} validation issue(s) · max 100 per batch</div>
         {notice && <p role="status" style={{ border: "1px solid var(--line)", padding: 12, margin: 0 }}>{notice}</p>}
-        <button className="button button--primary" type="button" disabled={busy || !contents.length || (kind === "stream" ? !servers.length : !providers.length)} onClick={submit}>{busy ? "Importing…" : "Validate & import links"}</button>
+        <button className="button button--primary" type="button" disabled={busy || !contentOptions.length || !selected || (kind === "stream" ? !servers.length : !providers.length)} onClick={submit}>{busy ? "Importing…" : "Validate & import links"}</button>
         {results.length > 0 && <div aria-live="polite"><h2 style={{ fontSize: 18, marginBottom: 8 }}>Row results</h2><ul style={{ display: "grid", gap: 6, paddingLeft: 20 }}>{results.map((item) => <li key={item.row}><strong>Row {item.row} — {item.status}:</strong> {item.message}</li>)}</ul></div>}
       </div>
     </section>

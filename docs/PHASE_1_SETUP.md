@@ -29,7 +29,7 @@ Google sign-in is **not operational until** real project settings, provider cred
 
 ## Migration
 
-The initial migration is `supabase/migrations/20261027000100_initial_foundation.sql`. It creates only `profiles`, `content`, `seasons`, and `episodes`, plus enums, indexes, timestamps, triggers, and RLS policies. It contains no sample catalogue inserts, Saved/progress/source/protection/admin tables, or credentials.
+The initial migration is `supabase/migrations/20261027000100_initial_foundation.sql`. It creates `profiles`, `content`, `seasons`, and `episodes`. The second migration, `supabase/migrations/20261028000100_admin_bulk_links.sql`, adds admin memberships, link providers/sources, import history, validation triggers, and RLS policies. Neither migration inserts sample catalogue data or credentials.
 
 The Supabase CLI and a local Supabase/PostgreSQL service are not part of this repository setup. Once approved, install the Supabase CLI using its official current instructions, initialize/link the intended project without replacing this existing migration, and inspect the generated CLI configuration before use. Prefer local validation first:
 
@@ -59,6 +59,37 @@ npm run build
 ```
 
 The Node built-in tests cover local redirect validation, migration policy structure, server-only boundaries, no shared cache directive in the private auth DAL, and preservation of existing sample routes. They are **static checks**, not PostgreSQL policy execution. Supabase CLI, `psql`, local Supabase, and OAuth credentials are not included here; actual migration application, RLS behavior, OAuth exchange, cookie refresh, and account creation require an approved isolated local Supabase setup and Google provider configuration.
+
+
+## Admin and Super Admin Bootstrap
+
+The admin/link-import schema is added by the second migration:
+`supabase/migrations/20261028000100_admin_bulk_links.sql`. Apply and review both migrations in an isolated local Supabase project first. Do not assume that the migrations have been applied to a hosted project.
+
+There is intentionally no public signup route that grants admin privileges. The first Super Admin must be provisioned manually by the project owner using the Supabase SQL Editor, after Google sign-in is configured and the owner has signed in at least once.
+
+1. Sign in to the app with the Google account that should own the admin workspace.
+2. In Supabase Dashboard → Authentication → Users, locate that exact account and copy its UUID. Verify the email/account carefully; do not use a UUID supplied by a browser form.
+3. In the SQL Editor for the intended project, run the following one-time statement after both migrations have succeeded. Replace the placeholder with the verified UUID. Keep the UUID quoted.
+
+```sql
+insert into public.admin_memberships (user_id, role, permissions, created_by)
+values (
+  'REPLACE-WITH-VERIFIED-AUTH-USER-UUID'::uuid,
+  'super_admin',
+  '{}'::jsonb,
+  'REPLACE-WITH-VERIFIED-AUTH-USER-UUID'::uuid
+);
+```
+
+4. Confirm exactly one row exists for that UUID with role `super_admin`, then sign out and back in and visit `/admin`.
+5. Keep the SQL Editor and project owner account restricted. Never put a service-role key in the app, source control, chat, or browser. Do not add another Super Admin by changing application-side permissions; the partial unique index intentionally permits only one Super Admin.
+
+This manual bootstrap requires trusted Supabase project-owner access; it is not callable by anonymous visitors or ordinary admins. The migration protects against deleting/demoting the final Super Admin, but a hosted project's actual RLS behavior must still be verified before production use.
+
+## Admin Link Import Scaling Note
+
+The current link-import context loader queries all content, seasons, and episodes to populate its selection UI. This is acceptable only for a small test catalogue and should be replaced with server-side searchable/paginated selectors before importing a large catalogue. Do not treat a successful static build as proof that hosted database permissions, migration application, or large-catalogue performance have been verified.
 
 ## Security Notes and Remaining Setup
 

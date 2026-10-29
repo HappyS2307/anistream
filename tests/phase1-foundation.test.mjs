@@ -266,3 +266,17 @@ test("admin content search checks permission first and safely supports Unicode t
   assert.match(searchRoute, /Number\.isSafeInteger\(parsedPage\)/);
   assert.match(searchRoute, /Cache-Control", "private, no-store, max-age=0"/);
 });
+
+
+test("bulk import enforces body size after reading and does not silently truncate validated fields", async () => {
+  const route = await readFile(
+    new URL("../src/app/api/admin/bulk-links/route.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(route, /const rawBody = await request\.text\(\)/);
+  assert.match(route, /new TextEncoder\(\)\.encode\(rawBody\)\.byteLength > 1_100_000/);
+  assert.match(route, /payload = JSON\.parse\(rawBody\)/);
+  assert.match(route, /function safeText\(value: unknown\): string/);
+  assert.doesNotMatch(route, /safeText\(row\.(?:url|quality|audioLanguage),\s*\d+\)/);
+});

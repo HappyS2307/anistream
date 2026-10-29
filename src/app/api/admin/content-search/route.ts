@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     .range(from, to - 1);
 
   if (query) {
-    const escaped = query.replace(/[^a-zA-Z0-9\\s\x27-]/g, " ").replace(/\\s+/g, " ").trim();
+    const escaped = query.replace(/[^a-zA-Z0-9\s'-]/g, " ").replace(/\s+/g, " ").trim();
     if (!escaped) return NextResponse.json({ items: [], page, pageSize: PAGE_SIZE, hasMore: false });
     requestQuery = requestQuery.or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`);
   }

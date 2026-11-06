@@ -7,7 +7,7 @@ type Item = { id:string; slug:string; kind:Kind; title:string; publication_statu
 type Cursor = { created_at:string; id:string } | null;
 type Draft = { id?:string; slug:string; kind:Kind; title:string; synopsis:string; poster_url:string; banner_url:string; release_year:string; rating:string; publication_status:Item["publication_status"]; genres:string; tags:string; original_title:string; trailer_url:string };
 type TMDBResult = {id:number;title:string;original_title:string;overview:string;poster_url:string;release_date:string;rating:number;media_type:string};
-type TMDBDetails = Partial<Draft> & {tmdb_id:number; release_date?:string|null;end_date?:string|null;content_status?:string|null;runtime_minutes?:number|null;total_episodes?:number|null;studios?:string[];country_codes?:string[];language_codes?:string[];seasons?:{season_number:number;title:string;episode_count:number;air_date:string}[];tmdb_url?:string};
+type TMDBDetails = Omit<Partial<Draft>, "genres"> & {genres?:string[];tmdb_id:number; release_date?:string|null;end_date?:string|null;content_status?:string|null;runtime_minutes?:number|null;total_episodes?:number|null;studios?:string[];country_codes?:string[];language_codes?:string[];seasons?:{season_number:number;title:string;episode_count:number;air_date:string}[];tmdb_url?:string};
 const empty:Draft={slug:"",kind:"anime",title:"",synopsis:"",poster_url:"",banner_url:"",release_year:"",rating:"",publication_status:"draft",genres:"",tags:"",original_title:"",trailer_url:""};
 const slugify=(value:string)=>value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 

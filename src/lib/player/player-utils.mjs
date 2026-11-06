@@ -56,7 +56,8 @@ export function resolvePlayerSource(
     };
   }
 
-  const embedUrl = validateEmbedUrl(source.embedUrl, allowedHosts);
+  const sourceAllowedHosts = source.allowedHost ? [source.allowedHost] : allowedHosts;
+  const embedUrl = validateEmbedUrl(source.embedUrl, sourceAllowedHosts);
 
   return {
     source,

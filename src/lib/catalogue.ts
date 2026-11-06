@@ -97,6 +97,23 @@ export async function getPublishedCatalogue(options: {
   return pageRows.map(toCatalogueRecord);
 }
 
+export type HomepageSectionSetting = {section_key:string;title:string;enabled:boolean;sort_order:number};
+const defaultHomepageSections:HomepageSectionSetting[] = [
+ {section_key:"latest",title:"Recently added",enabled:true,sort_order:1},
+ {section_key:"anime",title:"Anime",enabled:true,sort_order:2},
+ {section_key:"drama",title:"Drama",enabled:true,sort_order:3},
+ {section_key:"web_series",title:"Web Series",enabled:true,sort_order:4},
+ {section_key:"movies",title:"Movies",enabled:true,sort_order:5},
+ {section_key:"discover_banner",title:"Discover more",enabled:true,sort_order:6},
+];
+export async function getHomepageSections():Promise<HomepageSectionSetting[]> {
+ const supabase=await createSupabaseServerClient();
+ if(!supabase)return defaultHomepageSections;
+ const {data,error}=await (supabase as any).from("homepage_sections").select("section_key,title,enabled,sort_order").order("sort_order");
+ if(error||!data||data.length!==6)return defaultHomepageSections;
+ return data as HomepageSectionSetting[];
+}
+
 export async function getFeaturedTitle() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;

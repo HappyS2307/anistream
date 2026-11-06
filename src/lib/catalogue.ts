@@ -57,10 +57,12 @@ export async function getPublishedCatalogue(options: {
   kind?: ContentKind;
   query?: string;
   limit?: number;
+  cursor?: { createdAt: string; id: string };
 } = {}) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
 
+  // This is a per-request page size, not a catalogue-wide record cap.
   const limit = Math.min(Math.max(options.limit ?? 24, 1), 48);
   let request = supabase
     .from("content")
@@ -68,7 +70,11 @@ export async function getPublishedCatalogue(options: {
     .eq("publication_status", "published")
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
-    .limit(limit);
+    .limit(limit + 1);
+
+  if (options.cursor) {
+    request = request.or(`created_at.lt.${options.cursor.createdAt},and(created_at.eq.${options.cursor.createdAt},id.lt.${options.cursor.id})`);
+  }
 
   if (options.kind) request = request.eq("kind", options.kind);
   const query = options.query?.trim();
@@ -85,7 +91,10 @@ export async function getPublishedCatalogue(options: {
     return [];
   }
 
-  return (data ?? []).map(toCatalogueRecord);
+  const rows = data ?? [];
+  const hasMore = rows.length > limit;
+  const pageRows = hasMore ? rows.slice(0, limit) : rows;
+  return pageRows.map(toCatalogueRecord);
 }
 
 export async function getPublishedTitle(slug: string) {

@@ -119,7 +119,11 @@ export async function getPublishedPlayback(
   }
 
   const seasonNumberById = new Map(seasons.map((season) => [season.id, season.season_number]));
-  return episodes.map((episode): PlayerEpisode => ({
+  const orderedEpisodes = [...episodes].sort((a, b) => {
+    const seasonOrder = (seasonNumberById.get(a.season_id) ?? 1) - (seasonNumberById.get(b.season_id) ?? 1);
+    return seasonOrder || a.episode_number - b.episode_number;
+  });
+  return orderedEpisodes.map((episode): PlayerEpisode => ({
     id: episode.id,
     label: `S${seasonNumberById.get(episode.season_id) ?? 1} · E${episode.episode_number} — ${episode.title}`,
     sources: sourcesByEpisode.get(episode.id) ?? [],

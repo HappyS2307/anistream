@@ -10,7 +10,8 @@ function privateJson(body: unknown, init: ResponseInit = {}) {
 }
 
 export async function GET(request: Request) {
-  const access = await getAdminAccess("links.import");
+  let access = await getAdminAccess("content.manage");
+  if (access.status === "forbidden") access = await getAdminAccess("links.import");
   if (access.status === "unconfigured") return privateJson({ error: "Authentication is not configured." }, { status: 503 });
   if (access.status === "unauthenticated") return privateJson({ error: "Sign in is required." }, { status: 401 });
   if (access.status === "forbidden") return privateJson({ error: "You do not have permission to search content." }, { status: 403 });
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
 
   const items = result.data ?? [];
   return privateJson({
-    items: items.map(({ slug, title, kind }) => ({ slug, title, kind })),
+    items: items.map(({ id, slug, title, kind }) => ({ id, slug, title, kind })),
     page,
     pageSize: PAGE_SIZE,
     hasMore: items.length === PAGE_SIZE,

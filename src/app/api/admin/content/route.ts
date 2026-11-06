@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const search = (url.searchParams.get("q") ?? "").trim().slice(0, 80).replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim();
   let query = access.client.from("content")
-    .select("id,slug,kind,title,publication_status,created_at,poster_url,release_year,synopsis,banner_url,rating,genres,tags,original_title,trailer_url")
+    .select("id,slug,kind,title,publication_status,created_at,poster_url,release_year,synopsis,banner_url,rating,genres,tags,original_title,trailer_url,release_date,end_date,content_status,runtime_minutes,total_episodes,studios,country_codes,language_codes")
     .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(PAGE_SIZE + 1);
   const createdAt = url.searchParams.get("created_at");
   const id = url.searchParams.get("id");

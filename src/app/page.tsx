@@ -17,10 +17,10 @@ export default async function Home() {
   ]);
 
   const liveCollections: SampleCollection[] = [
-    { id: "anime", name: "Anime", titles: anime },
-    { id: "drama", name: "Drama", titles: drama },
-    { id: "web-series", name: "Web Series", titles: series },
-    { id: "movies", name: "Movies", titles: movies },
+    { id: "anime", name: "Anime" as SampleCollection["name"], titles: anime },
+    { id: "drama", name: "Drama" as SampleCollection["name"], titles: drama },
+    { id: "web-series", name: "Web Series" as SampleCollection["name"], titles: series },
+    { id: "movies", name: "Movies" as SampleCollection["name"], titles: movies },
   ].filter((collection) => collection.titles.length > 0);
 
   const collections = liveCollections.length ? liveCollections : sampleCollections;

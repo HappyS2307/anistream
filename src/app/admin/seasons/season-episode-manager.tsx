@@ -13,7 +13,6 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const [seasonId,setSeasonId]=useState("");
  const [seasonNo,setSeasonNo]=useState("1");
  const [seasonTitle,setSeasonTitle]=useState("");
- const [episodeCount,setEpisodeCount]=useState("12");
  const [episodeStart,setEpisodeStart]=useState("1");
  const [episodeEnd,setEpisodeEnd]=useState("12");
  const [busy,setBusy]=useState(false);
@@ -48,9 +47,8 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
   setBusy(true);setError(false);setMessage("");
   try{
    const created=await request({action:"create_season",content_id:selected.id,season_number:Number(seasonNo),title:seasonTitle.trim()||"Season "+seasonNo});
-   const sid=created.item.id;const count=Math.max(0,Math.min(500,Number(episodeCount)||0));
-   if(count){const generated=await request({action:"generate_episodes",season_id:sid,start_episode:1,end_episode:count});setMessage("Season created. "+generated.created+" episodes added"+(generated.skipped?"; "+generated.skipped+" already existed":"")+".");}
-   else setMessage("Season created. Add episodes whenever you're ready.");
+   const sid=created.item.id;
+   setMessage("Season created. Paste the episode links in Bulk Link Import; AniStream will create one episode for each valid link.");
    await load();setSeasonId(sid);setSeasonNo(String(Number(seasonNo)+1));setSeasonTitle("");
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Could not create season");}
   finally{setBusy(false);}
@@ -92,11 +90,10 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
 
   {selected&&<>
    <section className="season-panel">
-    <span className="season-step">STEP 2 · CREATE A SEASON</span><h2>Add a season</h2><p className="season-help">Enter the season number and episode count. AniStream creates the numbered episodes automatically.</p>
+    <span className="season-step">STEP 2 · CREATE A SEASON</span><h2>Add a season</h2><p className="season-help">Create the season first. Episode records are created automatically when you import their streaming links.</p>
     <form className="season-quick-form" onSubmit={createSeason}>
      <label>Season number<input className="form-control" type="number" min="1" max="500" value={seasonNo} onChange={e=>setSeasonNo(e.target.value)} required/></label>
      <label>Season name <small>Optional</small><input className="form-control" value={seasonTitle} onChange={e=>setSeasonTitle(e.target.value)} placeholder={"Season "+seasonNo}/></label>
-     <label>Number of episodes<input className="form-control" type="number" min="0" max="500" value={episodeCount} onChange={e=>setEpisodeCount(e.target.value)} required/></label>
      <button className="button button--primary" disabled={busy}>＋ Create season</button>
     </form>
    </section>

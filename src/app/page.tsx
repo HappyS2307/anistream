@@ -10,7 +10,7 @@ export default async function Home() {
     ? (["anime", "drama", "web_series", "movie"] as const)
         .map((kind) => ({
           id: kind === "web_series" ? "web-series" : kind === "movie" ? "movies" : kind,
-          name: kind === "web_series" ? "Web Series" : kind === "movie" ? "Movies" : kind === "anime" ? "Anime" : "Drama",
+          name: (kind === "web_series" ? "Web Series" : kind === "movie" ? "Movies" : kind === "anime" ? "Anime" : "Drama") as SampleCollection["name"],
           titles: liveTitles.filter((title) => title.kind === kind),
         }))
         .filter((collection) => collection.titles.length > 0)

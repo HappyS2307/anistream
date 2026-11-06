@@ -26,6 +26,7 @@ export function StreamingPlayer({
 
   const episode = episodes[episodeIndex];
   const sources = episode?.sources ?? [];
+  const isDemo = episodes.some((item) => item.sources.some((source) => source.testSource || source.demoOnly));
   const {
     source: activeSource,
     embedUrl,
@@ -52,11 +53,11 @@ export function StreamingPlayer({
         <div>
           <p className="eyebrow">
             <span className="eyebrow__dot" aria-hidden="true" />
-            {activeSource?.testSource ? "TEST SOURCE" : "PLAYER PREVIEW"}
+            {activeSource?.testSource ? "TEST SOURCE" : isDemo ? "PLAYER PREVIEW" : "ANISTREAM PLAYER"}
           </p>
           <h2 id="player-heading">Watch {title}</h2>
         </div>
-        <span className="streaming-player__demo-label">Local demo data</span>
+        <span className="streaming-player__demo-label">{isDemo ? "Local demo data" : "Live database sources"}</span>
       </div>
 
       <div className="streaming-player__stage" aria-live="polite">

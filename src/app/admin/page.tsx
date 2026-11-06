@@ -5,9 +5,9 @@ import { getAdminAccess } from "@/lib/data/admin";
 const tools = [
   {
     title: "Content catalogue",
-    description: "Anime, Drama, Movies aur Web Series ke metadata manage karne ka next module.",
-    status: "Planned",
-    href: "/admin",
+    description: "Manually create, edit, publish and remove catalogue titles.",
+    status: "Available",
+    href: "/admin/content",
   },
   {
     title: "Seasons & episodes",
@@ -65,7 +65,7 @@ export default async function AdminDashboardPage() {
             <h1 style={{ fontSize: "clamp(2.25rem, 5vw, 3.75rem)", letterSpacing: "-0.055em", lineHeight: 1.05, margin: 0 }}>Admin dashboard</h1>
             <p style={{ color: "var(--muted)", marginBottom: 0, maxWidth: 640 }}>Manage the catalogue and playback infrastructure from one place. Modules are clearly marked until their database workflows are implemented and verified.</p>
           </div>
-          <Link className="button" href="/admin/import">Open bulk import <span aria-hidden="true">↗</span></Link>
+          <Link className="button" href="/admin/content">Manage content <span aria-hidden="true">↗</span></Link>
         </div>
 
         <section aria-labelledby="admin-overview-title" style={{ marginTop: 36 }}>
@@ -90,7 +90,7 @@ export default async function AdminDashboardPage() {
           <h2 id="admin-tools-title" style={{ fontSize: 18, marginBottom: 14 }}>Management modules</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 14 }}>
             {tools.map((tool) => {
-              const available = tool.href === "/admin/import";
+              const available = tool.href === "/admin/import" || tool.href === "/admin/content";
               return (
                 <article className="surface-card" key={tool.title} style={{ padding: 22, display: "flex", flexDirection: "column", minHeight: 190 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

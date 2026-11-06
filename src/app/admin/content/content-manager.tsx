@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 
 type Kind = "anime" | "drama" | "web_series" | "movie";
-type Item = { id:string; slug:string; kind:Kind; title:string; publication_status:"draft"|"published"|"archived"; created_at:string; poster_url:string|null; release_year:number|null; synopsis:string|null; banner_url:string|null; rating:number|null; genres:string[]; tags:string[]; original_title:string|null; trailer_url:string|null };
+type Item = { id:string; slug:string; kind:Kind; title:string; publication_status:"draft"|"published"|"archived"; created_at:string; poster_url:string|null; release_year:number|null; synopsis:string|null; banner_url:string|null; rating:number|null; genres:string[]; tags:string[]; original_title:string|null; trailer_url:string|null; release_date:string|null; end_date:string|null; content_status:string|null; runtime_minutes:number|null; total_episodes:number|null; studios:string[]; country_codes:string[]; language_codes:string[] };
 type Cursor = { created_at:string; id:string } | null;
-type Draft = { id?:string; slug:string; kind:Kind; title:string; synopsis:string; poster_url:string; banner_url:string; release_year:string; rating:string; publication_status:Item["publication_status"]; genres:string; tags:string; original_title:string; trailer_url:string };
+type Draft = { id?:string; slug:string; kind:Kind; title:string; synopsis:string; poster_url:string; banner_url:string; release_year:string; rating:string; publication_status:Item["publication_status"]; genres:string; tags:string; original_title:string; trailer_url:string; release_date:string; end_date:string; content_status:string; runtime_minutes:string; total_episodes:string; studios:string; country_codes:string; language_codes:string };
 type TMDBResult = {id:number;title:string;original_title:string;overview:string;poster_url:string;release_date:string;rating:number;media_type:string};
 type TMDBDetails = Omit<Partial<Draft>, "genres"> & {genres?:string[];tmdb_id:number; release_date?:string|null;end_date?:string|null;content_status?:string|null;runtime_minutes?:number|null;total_episodes?:number|null;studios?:string[];country_codes?:string[];language_codes?:string[];seasons?:{season_number:number;title:string;episode_count:number;air_date:string}[];tmdb_url?:string};
-const empty:Draft={slug:"",kind:"anime",title:"",synopsis:"",poster_url:"",banner_url:"",release_year:"",rating:"",publication_status:"draft",genres:"",tags:"",original_title:"",trailer_url:""};
+const empty:Draft={slug:"",kind:"anime",title:"",synopsis:"",poster_url:"",banner_url:"",release_year:"",rating:"",publication_status:"draft",genres:"",tags:"",original_title:"",trailer_url:"",release_date:"",end_date:"",content_status:"",runtime_minutes:"",total_episodes:"",studios:"",country_codes:"",language_codes:""};
 const slugify=(value:string)=>value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 
 export function ContentManager() {
@@ -67,7 +67,7 @@ export function ContentManager() {
       if(!response.ok)throw new Error(data.error??"Could not load title details.");
       const detail=data.item as TMDBDetails;
       setSelectedTmdb(detail);
-      setDraft(old=>({...old,title:detail.title??result.title,slug:old.slug||slugify(detail.title??result.title),original_title:detail.original_title??result.original_title??"",synopsis:detail.synopsis??"",poster_url:detail.poster_url??"",banner_url:detail.banner_url??"",release_year:String(detail.release_year??""),rating:String(detail.rating??""),genres:(detail.genres??[]).join("|"),trailer_url:detail.trailer_url??"",tags:old.tags}));
+      setDraft(old=>({...old,title:detail.title??result.title,slug:old.slug||slugify(detail.title??result.title),original_title:detail.original_title??result.original_title??"",synopsis:detail.synopsis??"",poster_url:detail.poster_url??"",banner_url:detail.banner_url??"",release_year:String(detail.release_year??""),rating:String(detail.rating??""),genres:(detail.genres??[]).join("|"),trailer_url:detail.trailer_url??"",release_date:detail.release_date??"",end_date:detail.end_date??"",content_status:detail.content_status??"",runtime_minutes:String(detail.runtime_minutes??""),total_episodes:String(detail.total_episodes??""),studios:(detail.studios??[]).join("|"),country_codes:(detail.country_codes??[]).join("|"),language_codes:(detail.language_codes??[]).join("|"),tags:old.tags}));
       setTmdbResults([]);
       setTmdbMessage("Metadata imported. Review the fields, then create the title. Season and episode links are added separately.");
       setShowAdvanced(true);
@@ -76,13 +76,13 @@ export function ContentManager() {
   }
 
   function edit(item:Item){
-    setDraft({id:item.id,slug:item.slug,kind:item.kind,title:item.title,synopsis:item.synopsis??"",poster_url:item.poster_url??"",banner_url:item.banner_url??"",release_year:item.release_year?.toString()??"",rating:item.rating?.toString()??"",publication_status:item.publication_status,genres:(item.genres??[]).join("|"),tags:(item.tags??[]).join("|"),original_title:item.original_title??"",trailer_url:item.trailer_url??""});
+    setDraft({id:item.id,slug:item.slug,kind:item.kind,title:item.title,synopsis:item.synopsis??"",poster_url:item.poster_url??"",banner_url:item.banner_url??"",release_year:item.release_year?.toString()??"",rating:item.rating?.toString()??"",publication_status:item.publication_status,genres:(item.genres??[]).join("|"),tags:(item.tags??[]).join("|"),original_title:item.original_title??"",trailer_url:item.trailer_url??"",release_date:item.release_date??"",end_date:item.end_date??"",content_status:item.content_status??"",runtime_minutes:String(item.runtime_minutes??""),total_episodes:String(item.total_episodes??""),studios:(item.studios??[]).join("|"),country_codes:(item.country_codes??[]).join("|"),language_codes:(item.language_codes??[]).join("|")});
     setSelectedTmdb(null);setMessage("Editing catalogue entry.");window.scrollTo({top:0,behavior:"smooth"});
   }
   async function save(){
     if(!draft.title.trim()||!draft.slug.trim()){setMessage("Title and slug are required.");return;}
     setBusy(true);setMessage("");
-    const payload:Record<string,unknown>={slug:draft.slug,kind:draft.kind,title:draft.title,synopsis:draft.synopsis||null,poster_url:draft.poster_url||null,banner_url:draft.banner_url||null,release_year:draft.release_year?Number(draft.release_year):null,rating:draft.rating?Number(draft.rating):null,publication_status:draft.publication_status,genres:draft.genres.split("|").map(x=>x.trim()).filter(Boolean),tags:draft.tags.split("|").map(x=>x.trim()).filter(Boolean),original_title:draft.original_title||null,trailer_url:draft.trailer_url||null};
+    const payload:Record<string,unknown>={slug:draft.slug,kind:draft.kind,title:draft.title,synopsis:draft.synopsis||null,poster_url:draft.poster_url||null,banner_url:draft.banner_url||null,release_year:draft.release_year?Number(draft.release_year):null,rating:draft.rating?Number(draft.rating):null,publication_status:draft.publication_status,genres:draft.genres.split("|").map(x=>x.trim()).filter(Boolean),tags:draft.tags.split("|").map(x=>x.trim()).filter(Boolean),original_title:draft.original_title||null,trailer_url:draft.trailer_url||null,release_date:draft.release_date||null,end_date:draft.end_date||null,content_status:draft.content_status||null,runtime_minutes:draft.runtime_minutes?Number(draft.runtime_minutes):null,total_episodes:draft.total_episodes?Number(draft.total_episodes):null,studios:draft.studios.split("|").map(x=>x.trim()).filter(Boolean),country_codes:draft.country_codes.split("|").map(x=>x.trim()).filter(Boolean),language_codes:draft.language_codes.split("|").map(x=>x.trim()).filter(Boolean)};
     try{
       const response=await fetch("/api/admin/content",{method:draft.id?"PATCH":"POST",headers:{"content-type":"application/json"},body:JSON.stringify(draft.id?{id:draft.id,...payload}:payload)});
       const data=await response.json();if(!response.ok)throw new Error(data.error??"Save failed.");
@@ -132,7 +132,7 @@ export function ContentManager() {
             {field("original_title","Original title")}
             {field("release_year","Release year","number","YYYY")}
             {field("rating","TMDB rating / 10","number","0.0")}
-            {field("trailer_url","Trailer URL","url","https://youtube.com/…")}
+            {field("trailer_url","Trailer URL","url","https://youtube.com/…")}\n            {field("release_date","First release date","date")}\n            {field("end_date","Last air date","date")}\n            {field("content_status","Content status","text","ongoing / completed / upcoming")}\n            {field("runtime_minutes","Runtime (minutes)","number")}\n            {field("total_episodes","Total episodes","number")}\n            {field("studios","Studios · separated by |","text","Studio A | Studio B")}\n            {field("country_codes","Country codes · separated by |","text","JP | KR | US")}\n            {field("language_codes","Language codes · separated by |","text","ja | ko | en")}
             {field("genres","Genres · separated by |","text","Action | Fantasy | Drama")}
             {field("tags","Tags · separated by |","text","Hindi Dub | Subtitles | Featured")}
           </div><p>These fields are optional. TMDB metadata is prefilled when available; review before saving.</p>{selectedTmdb?.seasons?.length?<div className="catalogue-season-preview"><strong>{selectedTmdb.seasons.length} seasons detected</strong>{selectedTmdb.seasons.map(s=><span key={s.season_number}>Season {s.season_number} · {s.episode_count} episodes</span>)}</div>:null}<p className="catalogue-hint">Season and episode records are managed in the Seasons & Episodes workspace.</p></div>}

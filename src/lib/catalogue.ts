@@ -97,6 +97,24 @@ export async function getPublishedCatalogue(options: {
   return pageRows.map(toCatalogueRecord);
 }
 
+export async function getFeaturedTitle() {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("content")
+    .select("id,slug,kind,title,synopsis,artwork_url,poster_url,banner_url,release_year,rating")
+    .eq("publication_status", "published")
+    .eq("is_featured", true)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("Featured catalogue query failed:", error.message);
+    return null;
+  }
+  return data ? toCatalogueRecord(data) : null;
+}
+
 export async function getPublishedTitle(slug: string) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;

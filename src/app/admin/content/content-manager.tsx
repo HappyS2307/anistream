@@ -42,7 +42,7 @@ export function ContentManager() {
     } catch(e){setMessage(e instanceof Error?e.message:"Unable to load catalogue.");}
     finally{setBusy(false);}
   },[query]);
-  useEffect(()=>{void load(true);},[load]);
+  useEffect(()=>{const timer=window.setTimeout(()=>{void load(true);},280);return()=>window.clearTimeout(timer);},[load]);
 
   async function searchTMDB(){
     if(!tmdbQuery.trim())return;

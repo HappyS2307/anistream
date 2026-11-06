@@ -10,6 +10,7 @@ const groups=[
  ]},
  {label:"CONTENT",items:[
   {label:"Content library",href:"/admin/content",icon:"▤",hint:"Titles & metadata"},
+  {label:"Homepage studio",href:"/admin/homepage",icon:"⌂",hint:"Sections & ordering"},
   {label:"Seasons & episodes",href:"/admin/seasons",icon:"▣",hint:"Episode structure"},
  ]},
  {label:"MANAGEMENT",items:[

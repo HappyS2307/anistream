@@ -15,6 +15,7 @@ const groups=[
  {label:"PLAYBACK",items:[
   {label:"Streaming servers",href:"/admin/servers",icon:"◉",hint:"Registered hosts"},
   {label:"Link import",href:"/admin/import",icon:"⇧",hint:"Add episode links"},
+  {label:"Import history",href:"/admin/import/history",icon:"◷",hint:"Batch results"},
  ]},
 ];
 export function AdminWorkspace({children}:{children:ReactNode}){

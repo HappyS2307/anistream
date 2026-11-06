@@ -2216,3 +2216,60 @@ button:not(:disabled):active,
   .season-card,
   .button { transition: none; }
 }
+
+
+/* Admin workspace visual refinement */
+.admin-workspace{grid-template-columns:248px minmax(0,1fr);max-width:1720px;min-height:calc(100vh - 174px);background:#0d0f10}
+.admin-workspace__sidebar{padding:25px 16px 18px 20px;background:linear-gradient(180deg,#141718 0%,#101213 100%);border-right:1px solid rgb(255 255 255 / 8%)}
+.admin-workspace__brand{gap:12px;padding:0 8px 22px}
+.admin-workspace__brand>span:first-child{width:38px;height:38px;border:1px solid rgb(238 123 110 / 25%);border-radius:11px;background:linear-gradient(145deg,#d9756a28,#d9756a0a);box-shadow:0 6px 22px #0004;font-size:12px}
+.admin-workspace__brand-copy{display:grid;gap:4px}
+.admin-workspace__brand-copy strong{font-size:12px;letter-spacing:.01em}
+.admin-workspace__brand-copy small{color:#8f918e;font-size:7px;letter-spacing:.17em}
+.admin-workspace__mobile-title{display:none}
+.admin-workspace__nav{display:grid;gap:5px;padding-top:2px}
+.admin-workspace__group{gap:5px;margin-top:21px}
+.admin-workspace__group>p{margin-bottom:7px;color:#777b78;font-size:8px}
+.admin-workspace__group>a{min-height:45px;padding:0 11px;border-radius:9px;font-size:11px}
+.admin-workspace__group>a>span:first-child{width:20px;height:20px;border-radius:6px;background:#ffffff08;font-size:13px}
+.admin-workspace__link-copy{display:grid;gap:2px}
+.admin-workspace__link-copy strong{font-size:10px;font-weight:650}
+.admin-workspace__link-copy small{color:#818581;font-size:8px;font-weight:450}
+.admin-workspace__group>a.is-active{border-color:#e58b7f30;background:linear-gradient(90deg,#d9756a20,#d9756a08);box-shadow:inset 2px 0 #e58b7f}
+.admin-workspace__group>a.is-active .admin-workspace__link-copy small{color:#d6aaa3}
+.admin-workspace__sidebar-note{display:grid;grid-template-columns:12px 1fr;align-items:center;gap:5px 8px;margin-top:auto;padding:15px 8px 0;border-top:1px solid rgb(255 255 255 / 8%);font-size:9px}
+.admin-workspace__status-dot{color:#82c99a;font-size:8px}
+.admin-workspace__sidebar-note strong{color:#c8cbc6;font-size:9px;font-weight:550}
+.admin-workspace__sidebar-note a{grid-column:2;color:#e7a097;font-size:9px}
+.admin-workspace__content{padding:0 clamp(14px,2.1vw,30px) 30px}
+.admin-workspace__content>.admin-dashboard{max-width:1320px}
+.admin-workspace__content>.season-admin,.admin-workspace__content>.server-admin,.admin-workspace__content>.catalogue-admin{max-width:1320px}
+.admin-dashboard{padding-top:34px}
+.admin-hero{border-radius:16px;background:radial-gradient(ellipse at 84% 34%,rgb(214 91 80 / 14%),transparent 40%),linear-gradient(125deg,#1a1d1e,#111314 72%)}
+.admin-metric,.admin-module,.admin-recent,.admin-health{border-color:rgb(255 255 255 / 8%);background:linear-gradient(145deg,#191c1d,#131516)}
+.admin-module{min-height:195px}
+.admin-module:hover{border-color:#d9756a66;transform:translateY(-2px);box-shadow:0 12px 28px #0003}
+.admin-workspace__group>a:active,.admin-metric:active,.admin-module:active,.button:active{transform:scale(.985)}
+.season-panel,.catalogue-panel,.catalogue-sidecard{border-color:rgb(255 255 255 / 8%);border-radius:13px;background:linear-gradient(145deg,#191c1d,#121415)}
+.season-card{border-radius:10px;background:#111415}
+.season-card__select{min-height:44px}
+.season-episode-list article{border-radius:9px;background:#111415}
+.season-import-cta{min-height:42px;border-radius:8px}
+@media(max-width:800px){
+ .admin-workspace{display:flex;flex-direction:column;min-height:0;background:transparent}
+ .admin-workspace__sidebar{position:relative;min-height:0;padding:9px 12px 10px;border:0;border-bottom:1px solid rgb(255 255 255 / 8%);background:#111415}
+ .admin-workspace__brand{display:none}
+ .admin-workspace__mobile-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:1px 2px 9px}
+ .admin-workspace__mobile-title span{color:#858984;font-size:8px;font-weight:750;letter-spacing:.15em}
+ .admin-workspace__mobile-title strong{color:#e9e5df;font-size:10px;font-weight:600}
+ .admin-workspace__nav{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:0 0 2px}
+ .admin-workspace__nav::-webkit-scrollbar{display:none}
+ .admin-workspace__group{display:flex;flex:0 0 auto;gap:6px;margin:0}
+ .admin-workspace__group>a{min-height:38px;padding:0 11px;border:1px solid rgb(255 255 255 / 7%);background:#191c1d}
+ .admin-workspace__group>a .admin-workspace__link-copy small{display:none}
+ .admin-workspace__group>a>i{display:none}
+ .admin-workspace__sidebar-note{display:none}
+ .admin-workspace__content{padding:0 12px 22px}
+ .admin-dashboard{padding-top:24px}
+}
+@media(prefers-reduced-motion:reduce){.admin-workspace__group>a,.admin-module,.admin-metric,.season-card{transition:none!important}}

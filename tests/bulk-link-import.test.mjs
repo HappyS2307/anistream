@@ -38,7 +38,7 @@ test("explicit episode numbers are preserved and invalid hosts are rejected", ()
 
 test("duplicate URLs in one import are marked skipped", () => {
   const parsed = parseSimplePaste(
-    "https://player.abyssplayer.com/embed/same\nhttps://player.abyssplayer.com/embed/same",
+    "1 | https://player.abyssplayer.com/embed/same\n1 | https://player.abyssplayer.com/embed/same",
     { kind: "stream", contentSlug: "sample-series", contentKind: "anime", seasonNumber: "1", startingEpisode: "1", serverName: "Abyss" },
   );
   const validated = validateImportRows(parsed.rows, context, "stream");

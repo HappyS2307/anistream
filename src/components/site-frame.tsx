@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { AdminBackButton } from "@/components/admin-back-button";
 
 export function SiteFrame({
   children,
@@ -15,6 +16,7 @@ export function SiteFrame({
         Skip to content
       </a>
       <SiteHeader activeCategory={activeCategory} />
+      <AdminBackButton />
       {children}
       <footer className="site-footer">
         <div className="page-container site-footer__inner">

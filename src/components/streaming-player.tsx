@@ -36,8 +36,8 @@ export function StreamingPlayer({
   const previousIndex = getAdjacentEpisodeIndex(episodeIndex, -1, episodes.length);
   const nextIndex = getAdjacentEpisodeIndex(episodeIndex, 1, episodes.length);
   const episodeGroups = episodes.reduce<Array<{ title: string; entries: Array<{ item: PlayerEpisode; index: number }> }>>((groups, item, index) => {
-    const match = item.label.match(/^S(\\d+)\\s*[·|—-]/i);
-    const title = match ? `Season ${match[1]}` : "Episodes";
+    const match = item.label.match(/^S(\d+)\s*[·|—-]/i);
+    const title = match ? `Season ${String(Number(match[1])).padStart(2, "0")}` : "Episodes";
     let group = groups.find((entry) => entry.title === title);
     if (!group) {
       group = { title, entries: [] };
@@ -46,6 +46,18 @@ export function StreamingPlayer({
     group.entries.push({ item, index });
     return groups;
   }, []);
+  episodeGroups.sort((a, b) => {
+    const aSeason = Number(a.title.match(/Season (\d+)/)?.[1] ?? 0);
+    const bSeason = Number(b.title.match(/Season (\d+)/)?.[1] ?? 0);
+    return aSeason - bSeason;
+  });
+  for (const group of episodeGroups) {
+    group.entries.sort((a, b) => {
+      const aEpisode = Number(a.item.label.match(/E(\d+)/i)?.[1] ?? a.index + 1);
+      const bEpisode = Number(b.item.label.match(/E(\d+)/i)?.[1] ?? b.index + 1);
+      return aEpisode - bEpisode;
+    });
+  }
 
   function selectEpisode(index: number) {
     setEpisodeIndex(index);

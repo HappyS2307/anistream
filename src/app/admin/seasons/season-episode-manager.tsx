@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
+import Link from "next/link";
 
 type C={id:string;slug:string;title:string;kind:string};
 type S={id:string;content_id:string;season_number:number;title:string|null};
@@ -17,8 +18,6 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const [seasonId,setSeasonId]=useState("");
  const [seasonNo,setSeasonNo]=useState("1");
  const [seasonTitle,setSeasonTitle]=useState("");
- const [episodeStart,setEpisodeStart]=useState("1");
- const [episodeEnd,setEpisodeEnd]=useState("12");
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  const [error,setError]=useState(false);
@@ -26,7 +25,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const selected=searchResults.find(x=>x.slug===slug)||contents.find(x=>x.slug===slug);
  const current=seasons.find(x=>x.id===seasonId);
  const visible=useMemo(()=>episodes.filter(x=>x.season_id===seasonId).sort((a,b)=>a.episode_number-b.episode_number),[episodes,seasonId]);
- const filtered=useMemo(()=>searchResults.filter(c=>c.title.toLowerCase().includes(query.toLowerCase())).slice(0,50),[searchResults,query]);
+ const filtered=searchResults;
  async function searchTitles(append=false){
   setSearchBusy(true);setError(false);setMessage("");
   const page=append?searchPage+1:0;
@@ -36,7 +35,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    const found=(d.items||[]) as C[];
    setSearchResults(old=>append?[...old,...found.filter(x=>!old.some(y=>y.id===x.id))]:found);
    setSearchPage(page);setSearchHasMore(Boolean(d.hasMore));
-   if(!append)setSlug(found[0]?.slug||"");
+   if(!append&&!found.some(x=>x.slug===slug))setSlug(found[0]?.slug||"");
    if(!found.length&&!append)setMessage("No matching titles. Try another search.");
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Search failed");}
   finally{setSearchBusy(false);}
@@ -55,6 +54,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
   finally{setBusy(false);}
  }
  useEffect(()=>{void load();},[slug]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},250);return()=>window.clearTimeout(timer);},[query]);
 
  async function request(body:Record<string,unknown>){
   const r=await fetch("/api/admin/seasons",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
@@ -69,16 +69,6 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    setMessage("Season created. Paste the episode links in Bulk Link Import; AniStream will create one episode for each valid link.");
    await load();setSeasonId(sid);setSeasonNo(String(Number(seasonNo)+1));setSeasonTitle("");
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Could not create season");}
-  finally{setBusy(false);}
- }
- async function addEpisodes(e:React.FormEvent){
-  e.preventDefault();if(!seasonId)return;
-  setBusy(true);setError(false);setMessage("");
-  try{
-   const result=await request({action:"generate_episodes",season_id:seasonId,start_episode:Number(episodeStart),end_episode:Number(episodeEnd)});
-   await load();setSeasonId(current?.id||seasonId);
-   setMessage(result.created+" episode(s) added"+(result.skipped?"; "+result.skipped+" existing episode(s) skipped":"")+".");
-  }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Could not add episodes");}
   finally{setBusy(false);}
  }
  async function rename(ep:E){
@@ -97,7 +87,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  }
 
  return <section className="page-container season-admin season-admin--simple">
-  <header className="season-admin__hero"><div><p className="eyebrow">ANISTREAM / CONTENT MANAGER</p><h1>Seasons & <span>episodes</span></h1><p>Select a title, create its season, then add episodes in one click. No technical setup required.</p></div><div className="season-admin__count"><strong>{seasons.length}</strong><small>SEASONS</small><strong>{episodes.length}</strong><small>EPISODES</small></div></header>
+  <header className="season-admin__hero"><div><p className="eyebrow">ANISTREAM / CONTENT MANAGER</p><h1>Seasons & <span>episodes</span></h1><p>Select a title, create a season, then paste episode links. Episodes are created automatically.</p></div><div className="season-admin__count"><strong>{seasons.length}</strong><small>SEASONS</small><strong>{episodes.length}</strong><small>EPISODES</small></div></header>
 
   <section className="season-panel">
    <span className="season-step">STEP 1 · CHOOSE A TITLE</span><h2>Which title do you want to manage?</h2>
@@ -121,16 +111,11 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
     {seasons.length===0?<p className="season-empty">No seasons yet. Create the first season above.</p>:<div className="season-card-list">{seasons.map(s=><article className={"season-card "+(seasonId===s.id?"is-selected":"")} key={s.id}><button type="button" className="season-card__select" onClick={()=>setSeasonId(s.id)}><span className="season-card__number">S{s.season_number}</span><span><strong>{s.title||"Season "+s.season_number}</strong><small>{episodes.filter(ep=>ep.season_id===s.id).length} episodes</small></span><span className="season-card__arrow">{seasonId===s.id?"●":"›"}</span></button><button type="button" className="season-delete" disabled={busy} onClick={()=>void remove(s.id,"season")}>Delete</button></article>)}</div>}
    </section>
 
-   {current&&<section className="season-panel">
-    <span className="season-step">STEP 4 · ADD EPISODES</span><h2>{current.title||"Season "+current.season_number}</h2>
-    <p className="season-help">Add a range to this existing season. Already-created episode numbers are automatically skipped.</p>
-    <form className="season-quick-form season-quick-form--episodes" onSubmit={addEpisodes}>
-     <label>Starting episode<input className="form-control" type="number" min="1" max="500" value={episodeStart} onChange={e=>setEpisodeStart(e.target.value)} required/></label>
-     <label>Ending episode<input className="form-control" type="number" min="1" max="500" value={episodeEnd} onChange={e=>setEpisodeEnd(e.target.value)} required/></label>
-     <button className="button button--primary" disabled={busy||Number(episodeEnd)<Number(episodeStart)}>＋ Add episode range</button>
-    </form>
+   {current&&<section className="season-panel season-panel--episodes">
+    <div className="season-list-heading"><div><span className="season-step">STEP 4 · EPISODE LINKS</span><h2>{current.title||"Season "+current.season_number}</h2><p className="season-help">Paste your episode URLs in order. AniStream creates the episode records automatically and attaches each link.</p></div><span className="season-total">{visible.length} episodes</span></div>
+    <Link className="button button--primary season-import-cta" href={"/admin/import?content="+encodeURIComponent(slug)+"&season="+encodeURIComponent(String(current.season_number))}>＋ Add episode links</Link>
     <div className="season-episode-list">{visible.map(ep=><article key={ep.id}><b>{String(ep.episode_number).padStart(2,"0")}</b><div><strong>{ep.title}</strong><small>Episode {ep.episode_number}</small></div><button type="button" onClick={()=>void rename(ep)} disabled={busy}>Edit title</button><button type="button" className="season-delete" onClick={()=>void remove(ep.id,"episode")} disabled={busy}>Delete</button></article>)}</div>
-    {!visible.length&&<p className="season-empty">No episodes yet. Use the form above to add them.</p>}
+    {!visible.length&&<p className="season-empty">No episodes yet. Add your episode links to create them automatically.</p>}
    </section>}
   </>}
   {message&&<p className={"season-feedback "+(error?"is-error":"is-success")} role="status">{message}</p>}

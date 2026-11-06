@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SiteFrame } from "@/components/site-frame";
-import { getAdminAccess, getLinkImportContext } from "@/lib/data/admin";
+import { getAdminAccess } from "@/lib/data/admin";
 import { BulkLinkImportForm } from "./bulk-link-import-form";
 
 export default async function AdminBulkImportPage() {
@@ -17,15 +17,14 @@ export default async function AdminBulkImportPage() {
     return <SiteFrame><main className="page-container" style={{ paddingBlock: 64 }}><p className="eyebrow">ADMIN / BULK IMPORT</p><h1 style={{ fontSize: 32 }}>Bulk link import</h1><p style={{ color: "var(--muted)", maxWidth: 640 }}>{message}</p><p><Link className="button button--quiet" href="/login?next=%2Fadmin%2Fimport">Go to sign in</Link></p></main></SiteFrame>;
   }
 
-  const firstPage = await access.client.from("content").select("slug,title,kind").order("title").range(0, 24);
-  if (firstPage.error) {
-    return <SiteFrame><main className="page-container" style={{ paddingBlock: 64 }}><h1 style={{ fontSize: 32 }}>Bulk link import</h1><p style={{ color: "var(--muted)" }}>Admin content is unavailable. Check the database migrations and permissions.</p></main></SiteFrame>;
+  const [firstPage, serverResult, providerResult] = await Promise.all([
+    access.client.from("content").select("slug,title,kind").order("title").range(0, 24),
+    access.client.from("streaming_servers").select("id,name").eq("enabled", true).order("name"),
+    access.client.from("download_providers").select("id,name").eq("enabled", true).order("name"),
+  ]);
+  if (firstPage.error || serverResult.error || providerResult.error) {
+    return <SiteFrame><main className="page-container" style={{ paddingBlock: 64 }}><h1 style={{ fontSize: 32 }}>Bulk link import</h1><p style={{ color: "var(--muted)" }}>Admin data is unavailable. Check the database migrations and permissions.</p></main></SiteFrame>;
   }
 
-  const context = await getLinkImportContext((firstPage.data ?? []).map((item) => item.slug));
-  if (context.status !== "ready") {
-    return <SiteFrame><main className="page-container" style={{ paddingBlock: 64 }}><h1 style={{ fontSize: 32 }}>Bulk link import</h1><p style={{ color: "var(--muted)" }}>Admin data is unavailable. Check the Supabase migrations and configuration.</p></main></SiteFrame>;
-  }
-
-  return <SiteFrame><main><BulkLinkImportForm contents={(firstPage.data ?? []).map(({ slug, title, kind }) => ({ slug, title, kind }))} servers={context.context.streamingServers.map(({ id, name }) => ({ id, name }))} providers={context.context.downloadProviders.map(({ id, name }) => ({ id, name }))} /></main></SiteFrame>;
+  return <SiteFrame><main><BulkLinkImportForm contents={(firstPage.data ?? []).map(({ slug, title, kind }) => ({ slug, title, kind }))} servers={serverResult.data ?? []} providers={providerResult.data ?? []} /></main></SiteFrame>;
 }

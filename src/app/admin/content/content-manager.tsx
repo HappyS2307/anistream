@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Item = { id:string; slug:string; kind:"anime"|"drama"|"web_series"|"movie"; title:string; publication_status:"draft"|"published"|"archived"; created_at:string; poster_url:string|null; release_year:number|null };
+type Item = { id:string; slug:string; kind:"anime"|"drama"|"web_series"|"movie"; title:string; publication_status:"draft"|"published"|"archived"; created_at:string; poster_url:string|null; release_year:number|null; synopsis:string|null; banner_url:string|null; rating:number|null; genres:string[]; tags:string[]; original_title:string|null; trailer_url:string|null };
 type Cursor = { created_at:string; id:string } | null;
 type Draft = { id?:string; slug:string; kind:Item["kind"]; title:string; synopsis:string; poster_url:string; banner_url:string; release_year:string; rating:string; publication_status:Item["publication_status"]; genres:string; tags:string; original_title:string; trailer_url:string };
 const empty:Draft={slug:"",kind:"anime",title:"",synopsis:"",poster_url:"",banner_url:"",release_year:"",rating:"",publication_status:"draft",genres:"",tags:"",original_title:"",trailer_url:""};
@@ -15,14 +15,14 @@ export function ContentManager() {
   const [draft,setDraft]=useState<Draft>(empty);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
-  const [refresh,setRefresh]=useState(0);
 
-  const load=useCallback(async(reset:boolean) => {
+
+  const load=useCallback(async(reset:boolean, fromCursor:Cursor = null) => {
     setBusy(true);
     try {
       const params=new URLSearchParams();
       if(query.trim()) params.set("q",query.trim());
-      const activeCursor=reset?null:cursor;
+      const activeCursor=reset?null:fromCursor;
       if(activeCursor){params.set("created_at",activeCursor.created_at);params.set("id",activeCursor.id);}
       const response=await fetch("/api/admin/content?"+params.toString(),{cache:"no-store"});
       const data=await response.json();
@@ -32,12 +32,12 @@ export function ContentManager() {
       setCursor(data.nextCursor??null);
     } catch(e){setMessage(e instanceof Error?e.message:"Unable to load catalogue.");}
     finally{setBusy(false);}
-  },[cursor,query]);
+  },[query]);
 
-  useEffect(()=>{void load(true);},[refresh]); // query changes are applied with the Search button.
+  useEffect(()=>{void load(true);},[load]);
 
   function edit(item:Item){
-    setDraft({id:item.id,slug:item.slug,kind:item.kind,title:item.title,synopsis:"",poster_url:item.poster_url??"",banner_url:"",release_year:item.release_year?.toString()??"",rating:"",publication_status:item.publication_status,genres:"",tags:"",original_title:"",trailer_url:""});
+    setDraft({id:item.id,slug:item.slug,kind:item.kind,title:item.title,synopsis:item.synopsis??"",poster_url:item.poster_url??"",banner_url:item.banner_url??"",release_year:item.release_year?.toString()??"",rating:item.rating?.toString()??"",publication_status:item.publication_status,genres:(item.genres??[]).join("|"),tags:(item.tags??[]).join("|"),original_title:item.original_title??"",trailer_url:item.trailer_url??""});
     setMessage("Editing basic fields. Saving changes only fields entered below; blank optional fields are cleared.");
     window.scrollTo({top:0,behavior:"smooth"});
   }
@@ -48,7 +48,7 @@ export function ContentManager() {
       const response=await fetch("/api/admin/content",{method:draft.id?"PATCH":"POST",headers:{"content-type":"application/json"},body:JSON.stringify(draft.id?{id:draft.id,...payload}:payload)});
       const data=await response.json();
       if(!response.ok) throw new Error(data.error??"Save failed.");
-      setDraft(empty);setMessage(draft.id?"Title updated.":"Title created.");setCursor(null);setNext(null);setItems([]);setRefresh(x=>x+1);
+      setDraft(empty);setMessage(draft.id?"Title updated.":"Title created.");setCursor(null);setNext(null);setItems([]);void load(true);
     }catch(e){setMessage(e instanceof Error?e.message:"Save failed.");}
     finally{setBusy(false);}
   }
@@ -75,7 +75,7 @@ export function ContentManager() {
       <label style={{display:"grid",gap:6,fontSize:13,color:"var(--muted)",marginTop:14}}>Synopsis<textarea className="form-control" rows={4} value={draft.synopsis} onChange={e=>setDraft(v=>({...v,synopsis:e.target.value}))}/></label>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:16}}><button className="button button--primary" disabled={busy} onClick={()=>void save()}>{busy?"Saving…":draft.id?"Save changes":"Create title"}</button>{draft.id&&<button className="button button--quiet" onClick={()=>setDraft(empty)}>Cancel edit</button>}</div>
     </div>
-    <div style={{display:"flex",gap:10,marginTop:36,flexWrap:"wrap"}}><input className="form-control" aria-label="Search catalogue" placeholder="Search title or slug" value={query} onChange={e=>setQuery(e.target.value)} style={{maxWidth:420}}/><button className="button button--quiet" disabled={busy} onClick={()=>{setCursor(null);setNext(null);setItems([]);setRefresh(x=>x+1);}}>Search</button><button className="button button--quiet" disabled={busy} onClick={()=>{setQuery("");setCursor(null);setItems([]);setRefresh(x=>x+1);}}>Reset</button></div>
+    <div style={{display:"flex",gap:10,marginTop:36,flexWrap:"wrap"}}><input className="form-control" aria-label="Search catalogue" placeholder="Search title or slug" value={query} onChange={e=>setQuery(e.target.value)} style={{maxWidth:420}}/><button className="button button--quiet" disabled={busy} onClick={()=>{setCursor(null);setNext(null);setItems([]);void load(true);}}>Search</button><button className="button button--quiet" disabled={busy} onClick={()=>{setQuery("");setCursor(null);setItems([]);}}>Reset</button></div>
     {message&&<p role="status" style={{padding:12,border:"1px solid var(--line)",marginTop:14}}>{message}</p>}
     <div style={{display:"grid",gap:10,marginTop:16}}>
       {items.map(item=><article className="surface-card" key={item.id} style={{padding:14,display:"flex",gap:14,alignItems:"center",justifyContent:"space-between",flexWrap:"wrap"}}>
@@ -84,6 +84,6 @@ export function ContentManager() {
       </article>)}
       {!items.length&&!busy&&<p style={{color:"var(--muted)"}}>No titles found.</p>}
     </div>
-    {next&&<button className="button button--quiet" disabled={busy} onClick={()=>void load(false)} style={{marginTop:20}}>{busy?"Loading…":"Load more titles"}</button>}
+    {next&&<button className="button button--quiet" disabled={busy} onClick={()=>void load(false,cursor)} style={{marginTop:20}}>{busy?"Loading…":"Load more titles"}</button>}
   </section>;
 }

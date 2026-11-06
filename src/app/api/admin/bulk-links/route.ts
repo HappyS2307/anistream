@@ -91,6 +91,22 @@ export async function POST(request: Request) {
   }
 
   const validation = validateImportRows(rows, contextResult.context, kind);
+  if (body.validateOnly === true) {
+    const preview = validation.map((item) => ({
+      row: item.row,
+      status: item.status === "ready" ? "ready" : item.status === "skipped" ? "skipped" : "failed",
+      message: item.message,
+    }));
+    const ready = preview.filter((item) => item.status === "ready").length;
+    const skippedPreview = preview.filter((item) => item.status === "skipped").length;
+    const failedPreview = preview.filter((item) => item.status === "failed").length;
+    return NextResponse.json({
+      preview: true,
+      summary: { total: preview.length, ready, skipped: skippedPreview, failed: failedPreview },
+      results: preview,
+    }, { status: 200, headers: { "Cache-Control": "private, no-store" } });
+  }
+
   const results = [];
   let imported = 0;
   let skipped = 0;

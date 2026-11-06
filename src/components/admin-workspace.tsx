@@ -12,6 +12,9 @@ const groups=[
   {label:"Content library",href:"/admin/content",icon:"▤",hint:"Titles & metadata"},
   {label:"Seasons & episodes",href:"/admin/seasons",icon:"▣",hint:"Episode structure"},
  ]},
+ {label:"MANAGEMENT",items:[
+  {label:"User management",href:"/admin/users",icon:"♙",hint:"Admin access & roles"},
+ ]},
  {label:"PLAYBACK",items:[
   {label:"Streaming servers",href:"/admin/servers",icon:"◉",hint:"Registered hosts"},
   {label:"Link import",href:"/admin/import",icon:"⇧",hint:"Add episode links"},

@@ -27,17 +27,17 @@ export default async function Home() {
           <div className="hero__content page-container">
             <p className="eyebrow hero__eyebrow">
               <span className="eyebrow__rule" aria-hidden="true" />
-              {liveTitles.length ? "THE ANISTREAM COLLECTION" : "CATALOGUE PREVIEW"}
-              <span className="hero__eyebrow-note">{liveTitles.length ? "Stories worth staying for" : "Your library is getting ready"}</span>
+              {liveTitles.length ? "A WORLD OF STORIES" : "YOUR NEXT OBSESSION STARTS HERE"}
+              <span className="hero__eyebrow-note">{liveTitles.length ? "Anime · Drama · Films · More" : "A growing universe, curated for you"}</span>
             </p>
             <h1 id="hero-title">Find your<br /><span>next world.</span></h1>
-            <p className="hero__summary">Explore anime, drama, web series and films in one growing collection.</p>
+            <p className="hero__summary">One destination for anime, drama, series and films. Discover something worth staying in for.</p>
             <div className="hero__details">
-              <span className="sample-pill">{liveTitles.length ? `${liveTitles.length} titles loaded` : "Catalogue preview"}</span>
+              <span className="sample-pill">{liveTitles.length ? `${liveTitles.length} titles loaded` : "Discover AniStream"}</span>
               <span>Anime · Drama · Films</span>
             </div>
             <div className="hero__actions">
-              <a className="button button--primary" href="#collections">Explore catalogue <span aria-hidden="true">↘</span></a>
+              <a className="button button--primary" href="#collections">Explore AniStream <span aria-hidden="true">↘</span></a>
               <a className="button button--quiet" href="/search">Search titles</a>
             </div>
           </div>
@@ -46,7 +46,7 @@ export default async function Home() {
         <section className="catalogue page-container" id="collections">
           <div className="catalogue__intro">
             <div><p className="eyebrow"><span className="eyebrow__dot" aria-hidden="true" /> THE COLLECTION</p><h2>Find your<br className="mobile-break" /> next world.</h2></div>
-            <p className="catalogue__note">{liveTitles.length ? "Browse the latest published titles from the AniStream catalogue." : "The catalogue is connected. Published titles will appear here as they are added."}</p>
+            <p className="catalogue__note">{liveTitles.length ? "A handpicked doorway into the worlds you love. Find your next favourite and keep it close." : "Your next favourite is on its way. New titles will appear here as they are published."}</p>
           </div>
           <div className="catalogue__rows">
             {collections.map((collection) => <ContentRow key={collection.id} collection={collection} />)}

@@ -1,4 +1,4 @@
-import { validateEmbedUrl } from "@/lib/player/player-utils.mjs";
+import { validateEmbedUrl } from "../player/player-utils.mjs";
 
 export const MAX_IMPORT_RECORDS = 100;
 export const IMPORT_CSV_HEADERS = [

@@ -6,6 +6,7 @@ export type SampleTitle = {
   category: MediaCategory;
   description: string;
   artwork: string;
+  isSample?: boolean;
 };
 
 export type SampleCollection = {

@@ -321,7 +321,7 @@ export function validateImportRows(rows, context, expectedKind) {
       };
       const duplicateKey = [
         expectedKind,
-        normalized.contentId ?? normalized.episodeId,
+        normalized.contentId ?? normalized.episodeId ?? `${normalized.seasonId ?? ""}:${normalized.episodeNumber ?? ""}`,
         serverId ?? providerId,
         normalized.url,
       ].join("|");

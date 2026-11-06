@@ -14,7 +14,7 @@ const modules = [
   { number: "02", title: "Streaming servers", description: "Manage approved streaming server records and their availability. Existing playback protection remains unchanged.", href: "/admin/servers", state: "Available", active: true },
   { number: "03", title: "Episode playback links", description: "Attach approved streaming URLs to episodes using a registered server.", href: "/admin/import", state: "Link tools", active: true },
   { number: "04", title: "Seasons & episodes", description: "Create seasons, import episode links in bulk and manage episode titles.", href: "/admin/seasons", state: "Available", active: true },
-  { number: "05", title: "User management", description: "Review accounts, assign admin roles and manage granular permissions.", state: "In development" },
+  { number: "05", title: "User management", description: "Grant and revoke admin access and manage granular permissions.", href: "/admin/users", state: "Super Admin only", active: true },
   { number: "06", title: "Featured homepage title", description: "Choose the published title displayed in the homepage hero from the content editor.", href: "/admin/content", state: "Available", active: true },
   { number: "07", title: "Homepage studio", description: "Configure collections, section ordering, visibility and editorial layouts.", state: "In development" },
   { number: "08", title: "Customisation studio", description: "Configure AniStream branding, visual themes, layout and responsive presentation.", state: "In development" },

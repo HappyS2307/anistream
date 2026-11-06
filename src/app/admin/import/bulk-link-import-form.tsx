@@ -33,6 +33,27 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const selected = contentOptions.find((item) => item.slug === slug) ?? contents.find((item) => item.slug === slug);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialSlug = params.get("content");
+    const initialSeason = params.get("season");
+    if (initialSeason) setSeason(initialSeason);
+    if (!initialSlug) return;
+    setSlug(initialSlug);
+    if (contents.some((item) => item.slug === initialSlug)) return;
+    let active = true;
+    fetch("/api/admin/content-search?" + new URLSearchParams({ q: initialSlug, page: "0" }), { cache: "no-store" })
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error ?? "Could not load selected title.");
+        if (!active) return;
+        const items = Array.isArray(payload.items) ? payload.items as Array<{slug:string;title:string;kind:string}> : [];
+        setContentOptions((current) => [...items, ...current.filter((item) => !items.some((match) => match.slug === item.slug))]);
+      })
+      .catch(() => { if (active) setNotice("Could not preselect the title. Search for it below."); });
+    return () => { active = false; };
+  }, [contents]);
+
+  useEffect(() => {
     if (!slug || selected?.kind === "movie") {
       setSeasonOptions([]);
       setSeason("");

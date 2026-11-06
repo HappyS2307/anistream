@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { StreamingPlayer } from "@/components/streaming-player";
 import { SiteFrame } from "@/components/site-frame";
 import { getDemoPlayback } from "@/data/demo-playback";
+import { getPublishedPlayback } from "@/lib/playback";
 import { getSampleTitle, sampleCollections } from "@/data/sample-content";
 import { getPublishedTitle } from "@/lib/catalogue";
 
@@ -15,7 +16,7 @@ export default async function TitlePage({ params }: PageProps<"/title/[slug]">) 
 
   const collection = sampleCollections.find((item) => item.name === title.category);
   const isSample = !liveTitle;
-  const episodes = isSample ? getDemoPlayback(slug) : [];
+  const episodes = isSample ? getDemoPlayback(slug) : await getPublishedPlayback(liveTitle.id, liveTitle.kind);
 
   return (
     <SiteFrame activeCategory={collection?.id}>
@@ -43,12 +44,12 @@ export default async function TitlePage({ params }: PageProps<"/title/[slug]">) 
                 <h2 id="synopsis-heading">Synopsis</h2>
                 <p>{liveTitle?.synopsis || title.description || "Synopsis will be added soon."}</p>
               </section>
-              {isSample ? (
+              {episodes.length > 0 ? (
                 <StreamingPlayer title={title.title} episodes={episodes} />
               ) : (
                 <section className="streaming-player" aria-label="Playback availability">
                   <div className="streaming-player__heading"><div><p className="eyebrow"><span className="eyebrow__dot" aria-hidden="true" /> PLAYBACK</p><h2>Watch {title.title}</h2></div></div>
-                  <div className="streaming-player__message"><strong>Playback sources are not linked yet.</strong><span>Streaming links will appear here when an administrator adds and enables them.</span></div>
+                  <div className="streaming-player__message"><strong>Playback sources are not available yet.</strong><span>Episodes and approved streaming servers will appear here when an administrator adds and enables them.</span></div>
                 </section>
               )}
             </div>

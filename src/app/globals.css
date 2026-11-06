@@ -1709,3 +1709,40 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* AniStream responsive polish — shared public experience */
+:root { --radius-card: 10px; }
+.site-header { position: sticky; top: 0; backdrop-filter: blur(18px); background: rgb(16 17 18 / 88%); }
+.poster-card__artwork { border-radius: var(--radius-card); }
+.poster-card__copy { padding-inline: 2px; }
+.button--primary { border-radius: 6px; box-shadow: 0 8px 28px rgb(214 91 80 / 18%); }
+.search-form input, .streaming-player__server select, .streaming-player__nav-button { border-radius: 7px; }
+.surface-card { border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, rgb(255 255 255 / 3%), rgb(255 255 255 / 1%)); }
+@media (min-width: 1200px) {
+  .hero { min-height: min(720px, 72vw); }
+  .hero__content { padding-block: clamp(100px, 11vw, 160px); }
+  .hero h1 { font-size: clamp(68px, 6vw, 92px); letter-spacing: -0.045em; }
+  .content-row__grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px; }
+}
+@media (max-width: 720px) {
+  body { padding-bottom: env(safe-area-inset-bottom); }
+  .site-header { position: sticky; top: 0; z-index: 30; }
+  .site-header__inner { grid-template-columns: 1fr auto; }
+  .site-nav { gap: 22px; }
+  .hero { min-height: min(690px, calc(100svh - 104px)); }
+  .hero__artwork img { object-position: 66% center; }
+  .hero__content { padding-block: 70px 68px; }
+  .hero h1 { font-size: clamp(46px, 12vw, 62px); letter-spacing: -0.04em; }
+  .catalogue { padding-top: 56px; }
+  .content-row__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+  .poster-card__artwork { border-radius: 8px; }
+  .poster-card h2, .poster-card h3 { font-size: 13px; }
+  .site-footer__inner { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+}
+@media (max-width: 380px) {
+  .hero__content { padding-block: 54px 60px; }
+  .hero__summary { max-width: 300px; }
+  .hero__actions { flex-direction: row; align-items: center; }
+  .button--primary { gap: 10px; }
+}

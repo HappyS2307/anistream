@@ -1,12 +1,12 @@
 import Image from "next/image";
 import { ContentRow } from "@/components/content-row";
 import { SiteFrame } from "@/components/site-frame";
-import { sampleCollections } from "@/data/sample-content";
+import { sampleCollections, type SampleCollection } from "@/data/sample-content";
 import { getPublishedCatalogue } from "@/lib/catalogue";
 
 export default async function Home() {
   const liveTitles = await getPublishedCatalogue({ limit: 48 });
-  const collections = liveTitles.length
+  const collections: SampleCollection[] = liveTitles.length
     ? (["anime", "drama", "web_series", "movie"] as const)
         .map((kind) => ({
           id: kind === "web_series" ? "web-series" : kind === "movie" ? "movies" : kind,

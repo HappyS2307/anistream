@@ -9,6 +9,8 @@ import { getAdminAccess, getLinkImportContext } from "@/lib/data/admin";
 type NormalizedImport = {
   contentId: string | null;
   episodeId: string | null;
+  seasonId?: string | null;
+  episodeNumber?: number | null;
   serverId: string;
   providerId: string;
   url: string;
@@ -131,17 +133,44 @@ export async function POST(request: Request) {
       continue;
     }
 
+    let episodeId = normalized.episodeId;
+    if (!episodeId && normalized.seasonId && normalized.episodeNumber) {
+      const createdEpisode = await contextResult.client.from("episodes").insert({
+        season_id: normalized.seasonId,
+        episode_number: normalized.episodeNumber,
+        title: "Episode " + normalized.episodeNumber,
+      }).select("id").single();
+
+      if (createdEpisode.error?.code === "23505") {
+        const existingEpisode = await contextResult.client.from("episodes")
+          .select("id").eq("season_id", normalized.seasonId)
+          .eq("episode_number", normalized.episodeNumber).maybeSingle();
+        if (existingEpisode.error || !existingEpisode.data) {
+          results.push({ row: result.row, status: "failed", message: "Episode could not be created or recovered." });
+          failed += 1;
+          continue;
+        }
+        episodeId = existingEpisode.data.id;
+      } else if (createdEpisode.error || !createdEpisode.data) {
+        results.push({ row: result.row, status: "failed", message: "Episode could not be created." });
+        failed += 1;
+        continue;
+      } else {
+        episodeId = createdEpisode.data.id;
+      }
+    }
+
     const insertResult = kind === "stream"
       ? await contextResult.client.from("streaming_sources").insert({
           content_id: normalized.contentId,
-          episode_id: normalized.episodeId,
+          episode_id: episodeId,
           server_id: normalized.serverId,
           embed_url: normalized.url,
           created_by: contextResult.userId,
         })
       : await contextResult.client.from("download_sources").insert({
           content_id: normalized.contentId,
-          episode_id: normalized.episodeId,
+          episode_id: episodeId,
           provider_id: normalized.providerId,
           download_url: normalized.url,
           quality: normalized.quality,

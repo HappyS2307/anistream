@@ -253,11 +253,19 @@ export function validateImportRows(rows, context, expectedKind) {
       const episode = season && context.episodes.find(
         (entry) => entry.season_id === season.id && entry.episode_number === row.episodeNumber,
       );
-      if (!season || !episode) {
+      if (!season) {
         status = "rejected";
-        message = "Season or episode mapping was not found.";
+        message = "Season not found. Create the season before importing episode links.";
+      } else if (!episode) {
+        normalized = {
+          contentId: null,
+          episodeId: null,
+          seasonId: season.id,
+          episodeNumber: row.episodeNumber,
+        };
+        message = "Episode will be created automatically when you confirm the import.";
       } else {
-        normalized = { contentId: null, episodeId: episode.id };
+        normalized = { contentId: null, episodeId: episode.id, seasonId: season.id, episodeNumber: row.episodeNumber };
       }
     }
 

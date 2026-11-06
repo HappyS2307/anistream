@@ -290,6 +290,55 @@ export type Database = {
           updated_at?: string;
         }
       >;
+      user_saved_titles: Table<
+        {
+          user_id: string;
+          content_id: string;
+          created_at: string;
+        },
+        {
+          user_id: string;
+          content_id: string;
+          created_at?: string;
+        },
+        {
+          user_id?: string;
+          content_id?: string;
+          created_at?: string;
+        }
+      >;
+      playback_progress: Table<
+        {
+          id: string;
+          user_id: string;
+          content_id: string | null;
+          episode_id: string | null;
+          position_seconds: number;
+          duration_seconds: number | null;
+          completed: boolean;
+          updated_at: string;
+        },
+        {
+          id?: string;
+          user_id: string;
+          content_id?: string | null;
+          episode_id?: string | null;
+          position_seconds?: number;
+          duration_seconds?: number | null;
+          completed?: boolean;
+          updated_at?: string;
+        },
+        {
+          id?: string;
+          user_id?: string;
+          content_id?: string | null;
+          episode_id?: string | null;
+          position_seconds?: number;
+          duration_seconds?: number | null;
+          completed?: boolean;
+          updated_at?: string;
+        }
+      >;
       import_history: Table<
         {
           id: string;

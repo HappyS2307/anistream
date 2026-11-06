@@ -3,7 +3,7 @@ import { getAdminAccess } from "@/lib/data/admin";
 const out=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:{"Cache-Control":"private, no-store"}});
 const statusCode=(s:string)=>s==="unauthenticated"?401:s==="forbidden"?403:503;
 export async function GET(req:Request){
- const a=await getAdminAccess("content.manage");if(a.status!=="authorized")return out({error:"Content management permission required."},statusCode(a.status));
+ let a=await getAdminAccess("content.manage");if(a.status==="forbidden")a=await getAdminAccess("links.import");if(a.status!=="authorized")return out({error:"Content management or link-import permission required."},statusCode(a.status));
  const slug=new URL(req.url).searchParams.get("slug")||"";if(!slug)return out({error:"Choose a title."},400);
  const {data:c,error:ce}=await a.client.from("content").select("id,slug,title,kind").eq("slug",slug).maybeSingle();if(ce||!c)return out({error:"Title not found."},404);
  const {data:s,error:se}=await a.client.from("seasons").select("id,content_id,season_number,title,synopsis").eq("content_id",c.id).order("season_number");if(se)return out({error:"Could not load seasons."},503);

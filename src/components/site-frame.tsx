@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { AdminBackButton } from "@/components/admin-back-button";
+import { AdminWorkspace } from "@/components/admin-workspace";
 
 export function SiteFrame({
   children,
@@ -17,7 +18,7 @@ export function SiteFrame({
       </a>
       <SiteHeader activeCategory={activeCategory} />
       <AdminBackButton />
-      {children}
+      <AdminWorkspace>{children}</AdminWorkspace>
       <footer className="site-footer">
         <div className="page-container site-footer__inner">
           <Link className="brand brand--footer" href="/" aria-label="AniStream home">

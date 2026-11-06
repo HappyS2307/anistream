@@ -112,6 +112,25 @@ export function StreamingPlayer({
         )}
       </div>
 
+      <div className="episode-browser" aria-label="Choose an episode">
+        <div className="episode-browser__heading"><div><p className="eyebrow"><span className="eyebrow__dot" /> EPISODE GUIDE</p><h3>Episodes</h3></div><span>{episodes.length} episodes</span></div>
+        <div className="episode-browser__list">
+          {episodes.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`episode-browser__item ${index === episodeIndex ? "is-active" : ""}`}
+              aria-current={index === episodeIndex ? "true" : undefined}
+              onClick={() => selectEpisode(index)}
+            >
+              <span className="episode-browser__number">{String(index + 1).padStart(2, "0")}</span>
+              <span className="episode-browser__copy"><strong>{item.label}</strong><small>{item.sources.length ? `${item.sources.length} server${item.sources.length === 1 ? "" : "s"} available` : "Coming soon"}</small></span>
+              <span className="episode-browser__play">{index === episodeIndex ? "▶ Playing" : "▶ Play"}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="streaming-player__controls">
         {episodes.length > 0 ? (
           <>

@@ -2017,3 +2017,29 @@ a.admin-metric:hover { transform:translateY(-2px); border-color:rgb(238 123 110 
 @media(min-width:801px) and (max-width:1050px){.admin-workspace{grid-template-columns:190px minmax(0,1fr)}.admin-workspace__sidebar{padding-inline:12px}}
 
 .season-admin--simple .season-panel{margin-top:14px;padding:clamp(17px,2.6vw,25px);background:#141718}.season-title-search{width:100%;margin-bottom:9px}.season-selected-title{margin:10px 0 0;color:var(--muted);font-size:11px}.season-selected-title strong{color:var(--foreground)}.season-help{margin:-4px 0 18px;color:var(--muted);font-size:11px}.season-quick-form{display:grid;grid-template-columns:.65fr 1.2fr .8fr auto;align-items:end;gap:12px}.season-quick-form label{display:grid;gap:7px;color:var(--muted);font-size:10px}.season-quick-form label small{display:inline;color:var(--subtle)}.season-quick-form input,.season-quick-form button{min-height:44px}.season-quick-form button{white-space:nowrap}.season-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.season-list-heading h2{margin:7px 0 0}.season-total{color:var(--muted);font-size:10px}.season-card-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:15px}.season-card{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);border-radius:8px}.season-card.is-selected{border-color:#e58b7f88;background:#e58b7f0d}.season-card__select{display:flex;flex:1;min-width:0;align-items:center;gap:11px;padding:5px;border:0;background:transparent;color:var(--foreground);text-align:left;cursor:pointer}.season-card__select>span:nth-child(2){display:grid;gap:4px}.season-card__select strong{font-size:11px}.season-card__select small{color:var(--muted);font-size:9px}.season-card__number{display:grid;width:35px;height:35px;place-items:center;border-radius:7px;background:#e58b7f18;color:#eaa196;font-size:11px;font-weight:700}.season-card__arrow{margin-left:auto;color:#e58b7f}.season-episode-list article{min-height:54px}.season-episode-list article button{cursor:pointer}.season-episode-list article button:hover,.season-delete:hover{border-color:#e58b7f}.season-empty{margin-top:14px}@media(max-width:850px){.season-quick-form{grid-template-columns:1fr 1fr}.season-quick-form button{grid-column:1/-1}.season-card-list{grid-template-columns:1fr}}@media(max-width:520px){.season-admin--simple .season-admin__hero{display:block}.season-admin--simple .season-admin__count{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-top:16px}.season-admin--simple .season-admin__count strong{font-size:17px}.season-quick-form{grid-template-columns:1fr}.season-quick-form button{grid-column:auto}.season-episode-list article{flex-wrap:wrap}.season-episode-list article>div{min-width:calc(100% - 60px)}}
+
+
+/* Responsive episode browser and related-title rail */
+.episode-browser{display:grid;gap:12px;margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#171a1b,#111314)}
+.episode-browser__heading{display:flex;align-items:end;justify-content:space-between;gap:12px}
+.episode-browser__heading h3{margin:5px 0 0;font-size:18px;font-weight:620}
+.episode-browser__heading>span,.title-recommendations__heading>span{color:var(--muted);font-size:10px}
+.episode-browser__list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:420px;overflow:auto;padding-right:3px;scrollbar-width:thin}
+.episode-browser__item{display:flex;min-width:0;min-height:62px;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#191c1d;color:var(--foreground);text-align:left;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease}
+.episode-browser__item:hover{transform:translateY(-2px);border-color:#e58b7f88;background:#211b1b;box-shadow:0 7px 20px #0005}
+.episode-browser__item:active{transform:scale(.985)}
+.episode-browser__item.is-active{border-color:#e58b7f;background:#e58b7f14;box-shadow:inset 3px 0 #e58b7f}
+.episode-browser__number{display:grid;width:34px;height:34px;flex:0 0 auto;place-items:center;border-radius:8px;background:#ffffff0b;color:#e9a097;font-size:11px;font-weight:750}
+.episode-browser__copy{display:grid;min-width:0;gap:3px;flex:1}
+.episode-browser__copy strong{overflow:hidden;font-size:10px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
+.episode-browser__copy small{color:var(--muted);font-size:9px}
+.episode-browser__play{color:#e8a097;font-size:9px;font-weight:650;white-space:nowrap}
+.title-recommendations{margin-top:70px;padding-top:30px;border-top:1px solid var(--line)}
+.title-recommendations__heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:20px}
+.title-recommendations__heading h2{margin:8px 0 0;font-size:clamp(22px,3vw,30px);font-weight:560}
+.title-recommendations__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.button,.admin-module,.admin-metric,.catalogue-item,.season-card,.server-card{transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}
+.button:active,.admin-module:active,.admin-metric:active{transform:scale(.985)}
+.button:focus-visible,.episode-browser__item:focus-visible{outline:2px solid var(--accent-light);outline-offset:3px}
+@media(max-width:760px){.episode-browser__list{grid-template-columns:1fr;max-height:360px}.title-recommendations{margin-top:48px}.title-recommendations__grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.episode-browser{padding:12px}}
+@media(prefers-reduced-motion:reduce){.episode-browser__item,.button,.admin-module,.admin-metric,.catalogue-item,.season-card,.server-card{transition:none!important}.episode-browser__item:hover,.button:active,.admin-module:active,.admin-metric:active{transform:none}}

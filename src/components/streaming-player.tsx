@@ -150,7 +150,7 @@ export function StreamingPlayer({
                     aria-current={index === episodeIndex ? "true" : undefined}
                     onClick={() => selectEpisode(index)}
                   >
-                    <span className="episode-browser__number">{String(item.label.match(/E(\\d+)/i)?.[1] ?? index + 1).padStart(2, "0")}</span>
+                    <span className="episode-browser__number">{String(item.label.match(/E(\d+)/i)?.[1] ?? index + 1).padStart(2, "0")}</span>
                     <span className="episode-browser__copy"><strong>{item.label}</strong><small>{item.sources.length ? `${item.sources.length} server${item.sources.length === 1 ? "" : "s"} available` : "Coming soon"}</small></span>
                     <span className="episode-browser__play">{index === episodeIndex ? "▶ Playing" : "▶ Play"}</span>
                   </button>

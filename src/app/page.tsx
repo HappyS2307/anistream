@@ -3,17 +3,18 @@ import Link from "next/link";
 import { ContentRow } from "@/components/content-row";
 import { SiteFrame } from "@/components/site-frame";
 import { sampleCollections, type SampleCollection } from "@/data/sample-content";
-import { getPublishedCatalogue } from "@/lib/catalogue";
+import { getFeaturedTitle, getPublishedCatalogue } from "@/lib/catalogue";
 
 const kinds = ["anime", "drama", "web_series", "movie"] as const;
 
 export default async function Home() {
-  const [anime, drama, series, movies, latest] = await Promise.all([
+  const [anime, drama, series, movies, latest, featuredTitle] = await Promise.all([
     getPublishedCatalogue({ kind: "anime", limit: 12 }),
     getPublishedCatalogue({ kind: "drama", limit: 12 }),
     getPublishedCatalogue({ kind: "web_series", limit: 12 }),
     getPublishedCatalogue({ kind: "movie", limit: 12 }),
     getPublishedCatalogue({ limit: 12 }),
+    getFeaturedTitle(),
   ]);
 
   const liveCollections: SampleCollection[] = [
@@ -24,7 +25,7 @@ export default async function Home() {
   ].filter((collection) => collection.titles.length > 0);
 
   const collections = liveCollections.length ? liveCollections : sampleCollections;
-  const featured = anime[0] ?? drama[0] ?? series[0] ?? movies[0] ?? null;
+  const featured = featuredTitle ?? anime[0] ?? drama[0] ?? series[0] ?? movies[0] ?? null;
   const heroArtwork = featured?.bannerUrl ?? featured?.posterUrl ?? featured?.artwork ?? "/artwork/hero-coast.webp";
   const totalLoaded = anime.length + drama.length + series.length + movies.length;
 

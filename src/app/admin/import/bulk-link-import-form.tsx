@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { parseSimplePaste } from "@/lib/admin/bulk-link-import.mjs";
 
 type Option = { id: string; name: string };
@@ -18,7 +18,9 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const [searchPage, setSearchPage] = useState(0);
   const [searchHasMore, setSearchHasMore] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [season, setSeason] = useState("1");
+  const [season, setSeason] = useState("");
+  const [seasonOptions, setSeasonOptions] = useState<Array<{season_number:number;title:string|null}>>([]);
+  const [seasonLoading, setSeasonLoading] = useState(false);
   const [startEpisode, setStartEpisode] = useState("1");
   const [serverName, setServerName] = useState(servers[0]?.name ?? "");
   const [providerName, setProviderName] = useState(providers[0]?.name ?? "");
@@ -29,6 +31,30 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const [previewed, setPreviewed] = useState(false);
   const [previewSummary, setPreviewSummary] = useState<{total:number;ready:number;skipped:number;failed:number}|null>(null);
   const selected = contentOptions.find((item) => item.slug === slug) ?? contents.find((item) => item.slug === slug);
+
+  useEffect(() => {
+    if (!slug || selected?.kind === "movie") {
+      setSeasonOptions([]);
+      setSeason("");
+      return;
+    }
+    let active = true;
+    setSeasonLoading(true);
+    fetch("/api/admin/seasons?slug=" + encodeURIComponent(slug), { cache: "no-store" })
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error ?? "Could not load seasons.");
+        if (!active) return;
+        const options = (payload.seasons ?? []) as Array<{season_number:number;title:string|null}>;
+        setSeasonOptions(options);
+        setSeason((current) => options.some((item) => String(item.season_number) === current)
+          ? current
+          : options.length ? String(options[0].season_number) : "");
+      })
+      .catch(() => { if (active) { setSeasonOptions([]); setSeason(""); } })
+      .finally(() => { if (active) setSeasonLoading(false); });
+    return () => { active = false; };
+  }, [slug, selected?.kind]);
 
   async function searchContent(append = false) {
     setSearching(true);
@@ -87,7 +113,7 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
         setPreviewSummary(payload.summary ?? null);
         setPreviewed(true);
         setNotice(payload.summary?.failed
-          ? "Review the failed rows below. Fix missing seasons/episodes or invalid links before importing."
+          ? "Review the failed rows below. Create the season first or correct invalid links. Missing episode records will be created automatically when you confirm the import."
           : "Validation passed. Review the mapping, then confirm import.");
       } else {
         const summary = payload.summary;
@@ -128,9 +154,15 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
           </select>
         </label>
         {selected?.kind !== "movie" && <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-          <label>Season number<input className="form-control" type="number" min="1" value={season} onChange={(e) => setSeason(e.target.value)} style={{ display: "block", width: "100%", marginTop: 6 }} /></label>
+          <label>Season
+            <select className="form-control" value={season} onChange={(e) => setSeason(e.target.value)} disabled={seasonLoading || !seasonOptions.length} style={{ display: "block", width: "100%", marginTop: 6 }}>
+              {!seasonOptions.length && <option value="">{seasonLoading ? "Loading seasons…" : "No season created"}</option>}
+              {seasonOptions.map((item) => <option key={item.season_number} value={item.season_number}>Season {item.season_number}{item.title ? " · " + item.title : ""}</option>)}
+            </select>
+          </label>
           <label>Starting episode<input className="form-control" type="number" min="1" value={startEpisode} onChange={(e) => setStartEpisode(e.target.value)} style={{ display: "block", width: "100%", marginTop: 6 }} /></label>
         </div>}
+        {selected?.kind !== "movie" && !seasonLoading && !seasonOptions.length && <p style={{ color: "var(--muted)", margin: 0 }}>Create a season first in <a href="/admin/seasons">Seasons & episodes</a>. Episodes will be generated automatically from the links you import.</p>}
         {kind === "stream" ? <label>Streaming server
           <select className="form-control" value={serverName} onChange={(e) => setServerName(e.target.value)} style={{ display: "block", width: "100%", marginTop: 6 }}>
             {servers.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
@@ -145,11 +177,11 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
         </label>
         <div style={{ color: "var(--muted)", fontSize: 13 }}>{parsed.rows.length} row(s) parsed · {parsed.errors.length} validation issue(s) · max 100 per batch</div>
         {notice && <p role="status" style={{ border: "1px solid var(--line)", padding: 12, margin: 0 }}>{notice}</p>}
-        <button className="button" type="button" disabled={busy || !contentOptions.length || !selected || (kind === "stream" ? !servers.length : !providers.length)} onClick={() => void submit(true)}>{busy ? "Checking…" : "1. Preview & validate"}</button>
+        <button className="button" type="button" disabled={busy || !contentOptions.length || !selected || (selected.kind !== "movie" && !season) || (kind === "stream" ? !servers.length : !providers.length)} onClick={() => void submit(true)}>{busy ? "Checking…" : "1. Preview & validate"}</button>
         {previewed && previewSummary && <div className="bulk-import-preview" role="status">
           <strong>Validation summary</strong>
           <div className="bulk-import-preview__counts"><span>{previewSummary.ready} ready</span><span>{previewSummary.skipped} skipped</span><span>{previewSummary.failed} failed</span></div>
-          {previewSummary.failed > 0 && <p>Import is blocked until failed rows are corrected. For missing episode mapping, open Seasons & Episodes, create the season and generate the required episode range, then preview again.</p>}
+          {previewSummary.failed > 0 && <p>Import is blocked until failed rows are corrected. Create the season first if it does not exist. AniStream will create one episode per valid link when you confirm the import.</p>}
           {previewSummary.failed === 0 && previewSummary.ready > 0 && <button className="button button--primary" type="button" disabled={busy} onClick={() => void submit(false)}>{busy ? "Importing…" : "2. Confirm & import"}</button>}
           {previewSummary.ready === 0 && <p>No new valid links are ready to import.</p>}
         </div>}

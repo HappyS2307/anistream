@@ -10,11 +10,11 @@ export function ContentRow({ collection }: { collection: SampleCollection }) {
     >
       <div className="content-row__heading">
         <div>
-          <p className="content-row__eyebrow">A sample collection</p>
+          <p className="content-row__eyebrow">EXPLORE THE COLLECTION</p>
           <h2 id={`${collection.id}-heading`}>{collection.name}</h2>
         </div>
         <span className="content-row__count">
-          {collection.titles.length} sample titles
+          {collection.titles.length} titles
         </span>
       </div>
 
@@ -27,7 +27,7 @@ export function ContentRow({ collection }: { collection: SampleCollection }) {
       ) : (
         <div className="empty-state">
           <p className="empty-state__title">Nothing in this collection yet</p>
-          <p>New sample titles will appear here.</p>
+          <p>New titles will appear here.</p>
         </div>
       )}
     </section>

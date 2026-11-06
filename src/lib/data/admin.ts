@@ -6,6 +6,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type AdminPermission =
   | "links.import"
+  | "content.manage"
   | "streaming.manage"
   | "downloads.manage";
 

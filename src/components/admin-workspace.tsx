@@ -23,12 +23,12 @@ export function AdminWorkspace({children}:{children:ReactNode}){
  const activeLabel=groups.flatMap(g=>g.items).find(item=>item.href==="/admin"?pathname==="/admin":pathname===item.href||pathname.startsWith(item.href+"/"))?.label??"Admin workspace";
  return <div className="admin-workspace">
   <aside className="admin-workspace__sidebar" aria-label="Admin navigation">
-   <Link className="admin-workspace__brand" href="/admin"><span className="admin-workspace__brand-mark">AS</span><span><strong>AniStream Studio</strong><small>ADMIN CONTROL CENTRE</small></span></Link>
+   <Link prefetch className="admin-workspace__brand" href="/admin"><span className="admin-workspace__brand-mark">AS</span><span><strong>AniStream Studio</strong><small>ADMIN CONTROL CENTRE</small></span></Link>
    <div className="admin-workspace__mobile-title"><span>WORKSPACE</span><strong>{activeLabel}</strong></div>
    <nav className="admin-workspace__nav">
-    {groups.map(group=><section className="admin-workspace__group" key={group.label}><p>{group.label}</p>{group.items.map(item=>{const active=item.href==="/admin"?pathname==="/admin":pathname===item.href||pathname.startsWith(item.href+"/");return <Link key={item.href} href={item.href} className={active?"is-active":""} aria-current={active?"page":undefined}><span className="admin-workspace__icon" aria-hidden="true">{item.icon}</span><span className="admin-workspace__link-copy"><strong>{item.label}</strong><small>{item.hint}</small></span>{active&&<i/>}</Link>;})}</section>)}
+    {groups.map(group=><section className="admin-workspace__group" key={group.label}><p>{group.label}</p>{group.items.map(item=>{const active=item.href==="/admin"?pathname==="/admin":pathname===item.href||pathname.startsWith(item.href+"/");return <Link prefetch key={item.href} href={item.href} className={active?"is-active":""} aria-current={active?"page":undefined}><span className="admin-workspace__icon" aria-hidden="true">{item.icon}</span><span className="admin-workspace__link-copy"><strong>{item.label}</strong><small>{item.hint}</small></span>{active&&<i/>}</Link>;})}</section>)}
    </nav>
-   <div className="admin-workspace__sidebar-footer"><span className="admin-workspace__status-dot"/> Protected admin session<Link href="/">View public site ↗</Link></div>
+   <div className="admin-workspace__sidebar-footer"><span className="admin-workspace__status-dot"/> Protected admin session<Link prefetch href="/">View public site ↗</Link></div>
   </aside>
   <div className="admin-workspace__content">{children}</div>
  </div>;

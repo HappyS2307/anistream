@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
 
 type C={id:string;slug:string;title:string;kind:string};
@@ -21,24 +21,27 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  const [error,setError]=useState(false);
+ const searchRequest=useRef(0);
 
  const selected=searchResults.find(x=>x.slug===slug)||contents.find(x=>x.slug===slug);
  const current=seasons.find(x=>x.id===seasonId);
  const visible=useMemo(()=>episodes.filter(x=>x.season_id===seasonId).sort((a,b)=>a.episode_number-b.episode_number),[episodes,seasonId]);
  const filtered=searchResults;
  async function searchTitles(append=false){
+  const requestId=++searchRequest.current;
   setSearchBusy(true);setError(false);setMessage("");
   const page=append?searchPage+1:0;
   try{
    const r=await fetch("/api/admin/content-search?"+new URLSearchParams({q:query.trim(),page:String(page)}),{cache:"no-store"});
    const d=await r.json();if(!r.ok)throw Error(d.error||"Could not search titles");
+   if(requestId!==searchRequest.current)return;
    const found=(d.items||[]) as C[];
    setSearchResults(old=>append?[...old,...found.filter(x=>!old.some(y=>y.id===x.id))]:found);
    setSearchPage(page);setSearchHasMore(Boolean(d.hasMore));
    if(!append&&!found.some(x=>x.slug===slug))setSlug(found[0]?.slug||"");
    if(!found.length&&!append)setMessage("No matching titles. Try another search.");
-  }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Search failed");}
-  finally{setSearchBusy(false);}
+  }catch(e){if(requestId===searchRequest.current){setError(true);setMessage(e instanceof Error?e.message:"Search failed");}}
+  finally{if(requestId===searchRequest.current)setSearchBusy(false);}
  }
 
  async function load(value=slug){
@@ -54,7 +57,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
   finally{setBusy(false);}
  }
  useEffect(()=>{void load();},[slug]);
- useEffect(()=>{if(!query.trim())return;const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[query]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[query]);
 
  async function request(body:Record<string,unknown>){
   const r=await fetch("/api/admin/seasons",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});

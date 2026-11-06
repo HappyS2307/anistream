@@ -102,28 +102,34 @@ export default async function Home() {
             <div><p className="eyebrow"><span className="eyebrow__dot" aria-hidden="true" /> THE ANISTREAM LIBRARY</p><h2>Stories worth<br className="mobile-break" /> staying for.</h2></div>
             <p className="catalogue__note">{totalLoaded ? "Fresh discoveries across anime, drama, series and films. Pick a world and settle in." : "Your next favourite is on its way. New titles will appear here as they are published."}</p>
           </div>
-          {homepageSections.find((section) => section.section_key === "latest")?.enabled !== false ? <div className="home-latest">
-            <div className="home-section-heading"><div><p className="content-row__eyebrow">FRESH FROM THE LIBRARY</p><h2>Recently added</h2></div><Link href="/explore">Explore all <span aria-hidden="true">↗</span></Link></div>
-            {latest.length ? (
-              <div className="content-row__grid home-poster-rail">
-                {latest.map((title) => (
-                  <article className="poster-card" key={title.id}>
-                    <Link className="poster-card__link" href={`/title/${title.slug}`} aria-label={`View details for ${title.title}`}>
-                      <div className="poster-card__artwork"><Image alt={`Poster for ${title.title}`} src={title.artwork} fill unoptimized sizes="(max-width: 720px) 42vw, 16vw" /></div>
-                      <div className="poster-card__copy"><p className="poster-card__category">{title.category}</p><h3>{title.title}</h3><p className="poster-card__description">{title.description}</p></div>
-                    </Link>
-                  </article>
-                ))}
+          {homepageSections.filter((section) => section.enabled).sort((a,b)=>a.sort_order-b.sort_order).map((section) => {
+            if (section.section_key === "latest") return (
+              <div className="home-latest" key={section.section_key}>
+                <div className="home-section-heading"><div><p className="content-row__eyebrow">FRESH FROM THE LIBRARY</p><h2>{section.title}</h2></div><Link href="/explore">Explore all <span aria-hidden="true">↗</span></Link></div>
+                {latest.length ? (
+                  <div className="content-row__grid home-poster-rail">
+                    {latest.map((title) => (
+                      <article className="poster-card" key={title.id}>
+                        <Link className="poster-card__link" href={`/title/${title.slug}`} aria-label={`View details for ${title.title}`}>
+                          <div className="poster-card__artwork"><Image alt={`Poster for ${title.title}`} src={title.artwork} fill unoptimized sizes="(max-width: 720px) 42vw, 16vw" /></div>
+                          <div className="poster-card__copy"><p className="poster-card__category">{title.category}</p><h3>{title.title}</h3><p className="poster-card__description">{title.description}</p></div>
+                        </Link>
+                      </article>
+                    ))}
+                  </div>
+                ) : <p className="home-empty-note">New titles will appear here as they are published.</p>}
               </div>
-            ) : <p className="home-empty-note">New titles will appear here as they are published.</p>}
-          </div> : null}
-          <div className="catalogue__rows home-category-rows">
-            {collections.map((collection) => <ContentRow key={collection.id} collection={collection} />)}
-          </div>
-          {homepageSections.find((section) => section.section_key === "discover_banner")?.enabled !== false ? <div className="home-discover-banner">
-            <div><p className="eyebrow"><span className="eyebrow__dot" /> YOUR NEXT WATCH IS WAITING</p><h2>There’s always<br />another story.</h2></div>
-            <Link className="button button--primary" href="/explore">Explore the library <span aria-hidden="true">↗</span></Link>
-          </div> : null}
+            );
+            if (section.section_key === "discover_banner") return (
+              <div className="home-discover-banner" key={section.section_key}>
+                <div><p className="eyebrow"><span className="eyebrow__dot" /> YOUR NEXT WATCH IS WAITING</p><h2>{section.title}</h2></div>
+                <Link className="button button--primary" href="/explore">Explore the library <span aria-hidden="true">↗</span></Link>
+              </div>
+            );
+            const collectionKey = section.section_key === "web_series" ? "web-series" : section.section_key;
+            const collection = collections.find((item) => item.id === collectionKey);
+            return collection ? <ContentRow key={section.section_key} collection={{...collection,name:section.title as SampleCollection["name"]}} /> : null;
+          })}
         </section>
       </main>
     </SiteFrame>

@@ -2043,3 +2043,6 @@ a.admin-metric:hover { transform:translateY(-2px); border-color:rgb(238 123 110 
 .button:focus-visible,.episode-browser__item:focus-visible{outline:2px solid var(--accent-light);outline-offset:3px}
 @media(max-width:760px){.episode-browser__list{grid-template-columns:1fr;max-height:360px}.title-recommendations{margin-top:48px}.title-recommendations__grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.episode-browser{padding:12px}}
 @media(prefers-reduced-motion:reduce){.episode-browser__item,.button,.admin-module,.admin-metric,.catalogue-item,.season-card,.server-card{transition:none!important}.episode-browser__item:hover,.button:active,.admin-module:active,.admin-metric:active{transform:none}}
+
+
+.episode-browser__groups{display:grid;gap:16px}.episode-browser__season{display:grid;gap:8px}.episode-browser__season>h4{display:flex;align-items:center;gap:10px;margin:0;color:#e8e4de;font-size:11px;font-weight:700}.episode-browser__season>h4 span{color:var(--muted);font-size:9px;font-weight:450}

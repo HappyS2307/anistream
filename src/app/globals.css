@@ -1965,3 +1965,14 @@ a.admin-metric:hover { transform:translateY(-2px); border-color:rgb(238 123 110 
 .server-notice{margin-top:17px;padding:15px 17px;border:1px solid #e6bd8344;border-radius:9px;background:#e6bd8308}
 .server-notice strong{font-size:11px}.server-notice p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.7}
 @media(max-width:760px){.server-form{grid-template-columns:1fr}.server-form button{width:100%}.server-card__controls{grid-template-columns:1fr}.server-admin{padding-block:26px 75px}.server-admin__hero{align-items:flex-start}.server-admin__summary{width:76px}.server-admin__summary strong{font-size:24px}.server-admin__summary span{font-size:6px}.server-admin__hero h1{font-size:2.6rem}.server-admin__hero p:not(.eyebrow){font-size:11px}.server-panel{padding:16px}}
+
+
+/* Consistent back navigation across every admin screen */
+.admin-backbar{position:relative;z-index:5;border-bottom:1px solid var(--line);background:rgb(12 14 15 / 92%)}
+.admin-backbar__inner{display:flex;min-height:48px;align-items:center;justify-content:space-between}
+.admin-back-button{display:inline-flex;min-height:34px;align-items:center;gap:9px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#171a1b;color:var(--foreground);font:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:border-color .16s,background .16s}
+.admin-back-button:hover{border-color:#d9756a;background:#211918}
+.admin-back-button>span:first-child{color:#e58b7f;font-size:17px;line-height:1}
+.admin-back-button:focus-visible{outline:2px solid #e58b7f;outline-offset:3px}
+.admin-backbar__location{color:var(--subtle);font-size:8px;font-weight:700;letter-spacing:.16em}
+@media(max-width:600px){.admin-backbar__inner{min-height:44px}.admin-backbar__location{font-size:7px}}

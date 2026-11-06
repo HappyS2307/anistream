@@ -5,6 +5,7 @@ export type PlayerSource = {
   protectionEnabled: boolean;
   demoOnly?: boolean;
   testSource?: boolean;
+  allowedHost?: string;
 };
 
 export type PlayerEpisode = {

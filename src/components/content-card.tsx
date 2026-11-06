@@ -16,16 +16,17 @@ export function ContentCard({
       <Link
         className="poster-card__link"
         href={`/title/${title.slug}`}
-        aria-label={`View details for ${title.title}, sample ${title.category} title`}
+        aria-label={`View details for ${title.title}, ${title.category} title`}
       >
         <div className="poster-card__artwork">
           <Image
             alt={`Sample poster artwork for ${title.title}`}
             src={title.artwork}
             fill
+            unoptimized
             sizes="(max-width: 720px) 46vw, (max-width: 980px) 29vw, 23vw"
           />
-          <span className="poster-card__sample">Sample</span>
+          {title.isSample !== false ? <span className="poster-card__sample">Sample</span> : null}
         </div>
         <div className="poster-card__copy">
           <p className="poster-card__category">{title.category}</p>

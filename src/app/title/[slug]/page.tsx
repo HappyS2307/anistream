@@ -6,7 +6,8 @@ import { SiteFrame } from "@/components/site-frame";
 import { getDemoPlayback } from "@/data/demo-playback";
 import { getPublishedPlayback } from "@/lib/playback";
 import { getSampleTitle, sampleCollections } from "@/data/sample-content";
-import { getPublishedTitle } from "@/lib/catalogue";
+import { getPublishedTitle, getRecommendedTitles } from "@/lib/catalogue";
+import { ContentCard } from "@/components/content-card";
 
 export default async function TitlePage({ params }: PageProps<"/title/[slug]">) {
   const { slug } = await params;
@@ -16,7 +17,10 @@ export default async function TitlePage({ params }: PageProps<"/title/[slug]">) 
 
   const collection = sampleCollections.find((item) => item.name === title.category);
   const isSample = !liveTitle;
-  const episodes = isSample ? getDemoPlayback(slug) : await getPublishedPlayback(liveTitle.id, liveTitle.kind);
+  const [episodes, recommendations] = await Promise.all([
+    isSample ? Promise.resolve(getDemoPlayback(slug)) : getPublishedPlayback(liveTitle.id, liveTitle.kind),
+    liveTitle ? getRecommendedTitles({ excludeId: liveTitle.id, kind: liveTitle.kind, limit: 8 }) : Promise.resolve([]),
+  ]);
 
   return (
     <SiteFrame activeCategory={collection?.id}>
@@ -54,6 +58,17 @@ export default async function TitlePage({ params }: PageProps<"/title/[slug]">) 
               )}
             </div>
           </div>
+          {recommendations.length > 0 ? (
+            <section className="title-recommendations" aria-labelledby="recommendations-heading">
+              <div className="title-recommendations__heading">
+                <div><p className="eyebrow"><span className="eyebrow__dot" /> KEEP EXPLORING</p><h2 id="recommendations-heading">You may also like</h2></div>
+                <span>{recommendations.length} titles</span>
+              </div>
+              <div className="title-recommendations__grid">
+                {recommendations.map((item) => <ContentCard key={item.id} title={item} />)}
+              </div>
+            </section>
+          ) : null}
         </article>
       </main>
     </SiteFrame>

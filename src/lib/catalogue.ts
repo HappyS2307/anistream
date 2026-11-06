@@ -115,3 +115,26 @@ export async function getPublishedTitle(slug: string) {
 
   return data ? toCatalogueRecord(data) : null;
 }
+
+export async function getRecommendedTitles(options: {
+  excludeId: string;
+  kind: ContentKind;
+  limit?: number;
+}) {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+  const limit = Math.min(Math.max(options.limit ?? 8, 1), 16);
+  const { data, error } = await supabase
+    .from("content")
+    .select("id,slug,kind,title,synopsis,artwork_url,poster_url,banner_url,release_year,rating")
+    .eq("publication_status", "published")
+    .eq("kind", options.kind)
+    .neq("id", options.excludeId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error("Recommended catalogue query failed:", error.message);
+    return [];
+  }
+  return (data ?? []).map(toCatalogueRecord);
+}

@@ -11,7 +11,7 @@ function MetricCard({ label, value, note, href }: Metric) {
 
 const modules = [
   { number: "01", title: "Content catalogue", description: "Create, edit, publish and organise titles across Anime, Drama, Web Series and Movies.", href: "/admin/content", state: "Available", active: true },
-  { number: "02", title: "Streaming servers", description: "Add embed hosts, control server availability and switch playback protection per server.", href: "/admin/servers", state: "Available", active: true },
+  { number: "02", title: "Streaming servers", description: "Manage approved streaming server records and their availability. Existing playback protection remains unchanged.", href: "/admin/servers", state: "Available", active: true },
   { number: "03", title: "Episode playback links", description: "Attach approved streaming URLs to episodes using a registered server.", href: "/admin/import", state: "Link tools", active: true },
   { number: "04", title: "Seasons & episodes", description: "Create seasons, generate episode numbers and manage episode titles.", href: "/admin/seasons", state: "Available", active: true },
   { number: "05", title: "User management", description: "Review accounts, assign admin roles and manage granular permissions.", state: "In development" },

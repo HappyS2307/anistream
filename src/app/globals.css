@@ -2167,3 +2167,52 @@ button:not(:disabled):active,
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Responsive title detail and fast admin workspace polish */
+@media (max-width: 760px) {
+  .title-detail { padding-block: 24px 72px; }
+  .title-detail__back { margin-bottom: 20px; }
+  .title-detail__layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .title-detail__poster {
+    width: min(58vw, 250px);
+    margin-inline: auto;
+  }
+  .title-detail__copy { max-width: none; padding-block: 0 8px; }
+  .title-detail__category { margin-top: 6px; }
+  .title-detail__copy h1 { font-size: clamp(30px, 8vw, 42px); }
+  .title-detail__metadata { gap: 16px 22px; margin-top: 17px; padding-block: 13px; }
+  .title-detail__synopsis { margin-top: 18px; }
+  .title-detail__synopsis p { font-size: 12px; line-height: 1.7; }
+  .streaming-player { margin-top: 24px; gap: 12px; }
+  .streaming-player__heading h2 { font-size: 17px; }
+  .streaming-player__stage { min-height: 0; }
+}
+.admin-workspace__group>a,
+.admin-metric,
+.admin-module,
+.season-card,
+.button {
+  transition: transform 140ms ease, border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+}
+.admin-workspace__group>a:active,
+.admin-metric:active,
+.admin-module:active,
+.season-card__select:active,
+.button:active {
+  transform: scale(.985);
+}
+.admin-workspace__group>a { will-change: transform; }
+.season-import-cta { display: inline-flex; margin: 8px 0 16px; }
+.season-admin--simple .season-panel--episodes { border-color: rgb(238 123 110 / 22%); }
+@media (prefers-reduced-motion: reduce) {
+  .admin-workspace__group>a,
+  .admin-metric,
+  .admin-module,
+  .season-card,
+  .button { transition: none; }
+}

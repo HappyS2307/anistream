@@ -1746,3 +1746,26 @@ a:focus-visible {
   .hero__actions { flex-direction: row; align-items: center; }
   .button--primary { gap: 10px; }
 }
+
+
+/* Admin shortcut — rendered only for accounts with admin permission */
+.site-header__admin-link {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--foreground);
+  background: rgb(255 255 255 / 4%);
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+.site-header__admin-link svg { width: 19px; height: 19px; }
+.site-header__admin-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgb(214 91 80 / 10%);
+}
+@media (max-width: 720px) {
+  .site-header__admin-link { width: 34px; height: 34px; }
+}

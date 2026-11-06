@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Kind = "anime" | "drama" | "web_series" | "movie";
 type Item = { id:string; slug:string; kind:Kind; title:string; publication_status:"draft"|"published"|"archived"; created_at:string; poster_url:string|null; release_year:number|null; synopsis:string|null; banner_url:string|null; rating:number|null; genres:string[]; tags:string[]; original_title:string|null; trailer_url:string|null; release_date:string|null; end_date:string|null; content_status:string|null; runtime_minutes:number|null; total_episodes:number|null; studios:string[]; country_codes:string[]; language_codes:string[] };
@@ -25,8 +25,10 @@ export function ContentManager() {
   const [tmdbMessage,setTmdbMessage]=useState("");
   const [selectedTmdb,setSelectedTmdb]=useState<TMDBDetails|null>(null);
   const [showAdvanced,setShowAdvanced]=useState(false);
+  const requestSequence=useRef(0);
 
   const load=useCallback(async(reset:boolean, fromCursor:Cursor = null) => {
+    const requestId=++requestSequence.current;
     setBusy(true);
     try {
       const params=new URLSearchParams();
@@ -36,13 +38,18 @@ export function ContentManager() {
       const response=await fetch("/api/admin/content?"+params.toString(),{cache:"no-store"});
       const data=await response.json();
       if(!response.ok) throw new Error(data.error??"Catalogue request failed.");
+      if(requestId!==requestSequence.current)return;
       setItems(old=>reset?data.items:[...old,...data.items]);
       setNext(data.nextCursor??null);
       setCursor(data.nextCursor??null);
-    } catch(e){setMessage(e instanceof Error?e.message:"Unable to load catalogue.");}
-    finally{setBusy(false);}
+      setMessage("");
+    } catch(e){
+      if(requestId===requestSequence.current)setMessage(e instanceof Error?e.message:"Unable to load catalogue.");
+    } finally {
+      if(requestId===requestSequence.current)setBusy(false);
+    }
   },[query]);
-  useEffect(()=>{const timer=window.setTimeout(()=>{void load(true);},280);return()=>window.clearTimeout(timer);},[load]);
+  useEffect(()=>{const timer=window.setTimeout(()=>{setItems([]);setCursor(null);setNext(null);void load(true);},220);return()=>clearTimeout(timer);},[load]);
 
   async function searchTMDB(){
     if(!tmdbQuery.trim())return;
@@ -144,8 +151,8 @@ export function ContentManager() {
       <aside className="catalogue-sidebar"><div className="catalogue-sidecard"><span className="catalogue-step">YOUR WORKFLOW</span><h3>Metadata first.<br/>Playback next.</h3><ol><li><span>1</span><div><strong>Find on TMDB</strong><small>Import poster, synopsis, rating and release details.</small></div></li><li><span>2</span><div><strong>Review & create</strong><small>Confirm the title and save it as draft or published.</small></div></li><li><span>3</span><div><strong>Add seasons & episodes</strong><small>Set episode order and your own embed links.</small></div></li></ol><div className="catalogue-sidecard__note">TMDB provides metadata, not streaming video or episode embed URLs.</div></div></aside>
     </div>
 
-    <section className="catalogue-library"><div className="catalogue-library__heading"><div><span className="catalogue-step">YOUR DATABASE</span><h2>Catalogue library</h2><p>The page window is 40 titles. Your total catalogue can grow beyond this.</p></div><span className="catalogue-library__count">{items.length}{next?"+":""} LOADED</span></div>
-      <div className="catalogue-library__search"><input className="form-control" aria-label="Search catalogue" placeholder="Search title or slug…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void load(true);}}/><button className="button button--quiet" disabled={busy} onClick={()=>void load(true)}>Search ↗</button><button className="button button--quiet" disabled={busy} onClick={()=>{setQuery("");setItems([]);void load(true);}}>Reset</button></div>
+    <section className="catalogue-library"><div className="catalogue-library__heading"><div><span className="catalogue-step">YOUR DATABASE</span><h2>Catalogue library</h2><p>Browse with server-side search and cursor pagination. No fixed catalogue-size ceiling.</p></div><span className="catalogue-library__count">{items.length}{next?"+":""} LOADED</span></div>
+      <div className="catalogue-library__search"><input className="form-control" aria-label="Search catalogue" placeholder="Search title or slug…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void load(true);}}/><button className="button button--quiet" disabled={busy} onClick={()=>void load(true)}>Search ↗</button><button className="button button--quiet" disabled={busy} onClick={()=>{setQuery("");setItems([]);setCursor(null);setNext(null);}}>Reset</button></div>
       {items.length?<div className="catalogue-library__list">{items.map(item=><article className="catalogue-item" key={item.id}><div className="catalogue-item__poster">{item.poster_url?<img src={item.poster_url} alt=""/>:<span>AS</span>}</div><div className="catalogue-item__copy"><strong>{item.title}</strong><small>{item.kind.replace("_"," ")} · {item.release_year??"Year n/a"} · {item.slug}</small></div><span className={"catalogue-item__status catalogue-item__status--"+item.publication_status}>{item.publication_status}</span><button className="button button--quiet" onClick={()=>edit(item)}>Edit</button><button className="catalogue-item__delete" disabled={busy} onClick={()=>void remove(item.id)} aria-label={"Delete "+item.title}>×</button></article>)}</div>:<div className="catalogue-library__empty"><span>✳</span><strong>{busy?"Loading catalogue…":"Your catalogue starts here."}</strong><p>{busy?"":"Search TMDB above or add your first title to begin."}</p></div>}
       {next&&<button className="button button--quiet catalogue-load-more" disabled={busy} onClick={()=>void load(false,cursor)}>{busy?"Loading…":"Load more titles ↓"}</button>}
     </section>

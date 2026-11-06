@@ -18,7 +18,7 @@ const tools = [
   {
     title: "Streaming & downloads",
     description: "Enabled servers/providers aur approved playback URLs.",
-    status: "Import available",
+    status: "Available",
     href: "/admin/import",
   },
   {
@@ -30,7 +30,7 @@ const tools = [
 ];
 
 export default async function AdminDashboardPage() {
-  const access = await getAdminAccess("links.import");
+  const access = await getAdminAccess("content.manage");
 
   if (access.status !== "authorized") {
     const message =
@@ -63,7 +63,7 @@ export default async function AdminDashboardPage() {
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", justifyContent: "space-between", gap: 20, marginTop: 8 }}>
           <div>
             <h1 style={{ fontSize: "clamp(2.25rem, 5vw, 3.75rem)", letterSpacing: "-0.055em", lineHeight: 1.05, margin: 0 }}>Admin dashboard</h1>
-            <p style={{ color: "var(--muted)", marginBottom: 0, maxWidth: 640 }}>Manage the catalogue and playback infrastructure from one place. Modules are clearly marked until their database workflows are implemented and verified.</p>
+            <p style={{ color: "var(--muted)", marginBottom: 0, maxWidth: 640 }}>Manage titles from one place. More catalogue and playback tools will be enabled as their workflows are completed and tested.</p>
           </div>
           <Link className="button" href="/admin/content">Manage content <span aria-hidden="true">↗</span></Link>
         </div>
@@ -90,7 +90,7 @@ export default async function AdminDashboardPage() {
           <h2 id="admin-tools-title" style={{ fontSize: 18, marginBottom: 14 }}>Management modules</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 14 }}>
             {tools.map((tool) => {
-              const available = tool.href === "/admin/import" || tool.href === "/admin/content";
+              const available = tool.href === "/admin/content";
               return (
                 <article className="surface-card" key={tool.title} style={{ padding: 22, display: "flex", flexDirection: "column", minHeight: 190 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

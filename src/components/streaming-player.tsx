@@ -35,6 +35,17 @@ export function StreamingPlayer({
   } = resolvePlayerSource(sources, serverId);
   const previousIndex = getAdjacentEpisodeIndex(episodeIndex, -1, episodes.length);
   const nextIndex = getAdjacentEpisodeIndex(episodeIndex, 1, episodes.length);
+  const episodeGroups = episodes.reduce<Array<{ title: string; entries: Array<{ item: PlayerEpisode; index: number }> }>>((groups, item, index) => {
+    const match = item.label.match(/^S(\\d+)\\s*[·|—-]/i);
+    const title = match ? `Season ${match[1]}` : "Episodes";
+    let group = groups.find((entry) => entry.title === title);
+    if (!group) {
+      group = { title, entries: [] };
+      groups.push(group);
+    }
+    group.entries.push({ item, index });
+    return groups;
+  }, []);
 
   function selectEpisode(index: number) {
     setEpisodeIndex(index);
@@ -114,19 +125,26 @@ export function StreamingPlayer({
 
       <div className="episode-browser" aria-label="Choose an episode">
         <div className="episode-browser__heading"><div><p className="eyebrow"><span className="eyebrow__dot" /> EPISODE GUIDE</p><h3>Episodes</h3></div><span>{episodes.length} episodes</span></div>
-        <div className="episode-browser__list">
-          {episodes.map((item, index) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`episode-browser__item ${index === episodeIndex ? "is-active" : ""}`}
-              aria-current={index === episodeIndex ? "true" : undefined}
-              onClick={() => selectEpisode(index)}
-            >
-              <span className="episode-browser__number">{String(index + 1).padStart(2, "0")}</span>
-              <span className="episode-browser__copy"><strong>{item.label}</strong><small>{item.sources.length ? `${item.sources.length} server${item.sources.length === 1 ? "" : "s"} available` : "Coming soon"}</small></span>
-              <span className="episode-browser__play">{index === episodeIndex ? "▶ Playing" : "▶ Play"}</span>
-            </button>
+        <div className="episode-browser__groups">
+          {episodeGroups.map((group) => (
+            <section className="episode-browser__season" key={group.title}>
+              <h4>{group.title}<span>{group.entries.length} episodes</span></h4>
+              <div className="episode-browser__list">
+                {group.entries.map(({ item, index }) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`episode-browser__item ${index === episodeIndex ? "is-active" : ""}`}
+                    aria-current={index === episodeIndex ? "true" : undefined}
+                    onClick={() => selectEpisode(index)}
+                  >
+                    <span className="episode-browser__number">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="episode-browser__copy"><strong>{item.label}</strong><small>{item.sources.length ? `${item.sources.length} server${item.sources.length === 1 ? "" : "s"} available` : "Coming soon"}</small></span>
+                    <span className="episode-browser__play">{index === episodeIndex ? "▶ Playing" : "▶ Play"}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </div>

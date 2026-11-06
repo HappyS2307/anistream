@@ -118,22 +118,24 @@ export function ContentManager() {
 
         <section className="catalogue-panel catalogue-panel--form">
           <div className="catalogue-panel__heading"><div><span className="catalogue-step">STEP 02</span><h2>{draft.id?"Edit title information":"Review imported information"}</h2><p>Check the details before saving to your catalogue.</p></div><span className="catalogue-panel__badge">MANUAL REVIEW</span></div>
-          <div className="catalogue-form">
-            {field("title","Display title","text","Title")}
-            {field("slug","URL slug","text","auto-generated-from-title")}
-            {field("original_title","Original title","text","Original language title")}
-            {field("release_year","Release year","number","YYYY")}
-            {field("rating","TMDB rating / 10","number","0.0")}
-            <label className="catalog-field">Publication status<select className="form-control" value={draft.publication_status} onChange={e=>setDraft(v=>({...v,publication_status:e.target.value as Draft["publication_status"]}))}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
+          <div className="catalogue-form catalogue-form--simple">
+            {field("title","Title *","text","Enter the title")}
+            {field("slug","URL slug *","text","auto-generated-from-title")}
+            <label className="catalog-field">Content type<select className="form-control" value={draft.kind} onChange={e=>setDraft(v=>({...v,kind:e.target.value as Kind}))}><option value="anime">Anime</option><option value="drama">Drama</option><option value="web_series">Web Series</option><option value="movie">Movie</option></select></label>
+            <label className="catalog-field">Publication status<select className="form-control" value={draft.publication_status} onChange={e=>setDraft(v=>({...v,publication_status:e.target.value as Draft["publication_status"]}))}><option value="draft">Save as draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
             {field("poster_url","Poster image URL","url","https://…")}
             {field("banner_url","Backdrop image URL","url","https://…")}
-            {field("trailer_url","Trailer URL","url","https://youtube.com/…")}
-            {field("genres","Genres · separated by |","text","Action | Fantasy | Drama")}
           </div>
           <label className="catalog-field catalogue-form__wide">Synopsis<textarea className="form-control" rows={4} value={draft.synopsis} placeholder="Synopsis is filled from TMDB when available…" onChange={e=>setDraft(v=>({...v,synopsis:e.target.value}))}/></label>
-          <label className="catalog-field catalogue-form__wide">Tags · separated by |<input className="form-control" value={draft.tags} placeholder="Hindi Dub | Subtitles | Featured" onChange={e=>setDraft(v=>({...v,tags:e.target.value}))}/></label>
           <button className="catalogue-advanced-toggle" onClick={()=>setShowAdvanced(v=>!v)} aria-expanded={showAdvanced}>{showAdvanced?"Hide":"Show"} additional metadata <span>{showAdvanced?"−":"＋"}</span></button>
-          {showAdvanced&&<div className="catalogue-extra"><p>TMDB metadata is used to prefill the available fields. You can add extra details later in the advanced editor.</p>{selectedTmdb?.seasons?.length?<div className="catalogue-season-preview"><strong>{selectedTmdb.seasons.length} seasons detected</strong>{selectedTmdb.seasons.map(s=><span key={s.season_number}>Season {s.season_number} · {s.episode_count} episodes</span>)}</div>:null}<p className="catalogue-hint">Season structures and episode links are not created automatically yet. They will be managed separately so you can attach your own streaming URLs.</p></div>}
+          {showAdvanced&&<div className="catalogue-extra"><div className="catalogue-form">
+            {field("original_title","Original title")}
+            {field("release_year","Release year","number","YYYY")}
+            {field("rating","TMDB rating / 10","number","0.0")}
+            {field("trailer_url","Trailer URL","url","https://youtube.com/…")}
+            {field("genres","Genres · separated by |","text","Action | Fantasy | Drama")}
+            {field("tags","Tags · separated by |","text","Hindi Dub | Subtitles | Featured")}
+          </div><p>These fields are optional. TMDB metadata is prefilled when available; review before saving.</p>{selectedTmdb?.seasons?.length?<div className="catalogue-season-preview"><strong>{selectedTmdb.seasons.length} seasons detected</strong>{selectedTmdb.seasons.map(s=><span key={s.season_number}>Season {s.season_number} · {s.episode_count} episodes</span>)}</div>:null}<p className="catalogue-hint">Season and episode records are managed in the Seasons & Episodes workspace.</p></div>}
           <div className="catalogue-form__actions"><button className="button button--primary" disabled={busy} onClick={()=>void save()}>{busy?"Saving…":draft.id?"Save changes":"Create catalogue title"} <span>↗</span></button>{draft.id&&<button className="button button--quiet" onClick={()=>{setDraft(empty);setSelectedTmdb(null);}}>Cancel edit</button>}</div>
           {message&&<p className="catalogue-feedback" role="status">{message}</p>}
         </section>

@@ -26,6 +26,8 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [results, setResults] = useState<Array<{row:number;status:string;message:string}>>([]);
+  const [previewed, setPreviewed] = useState(false);
+  const [previewSummary, setPreviewSummary] = useState<{total:number;ready:number;skipped:number;failed:number}|null>(null);
   const selected = contentOptions.find((item) => item.slug === slug) ?? contents.find((item) => item.slug === slug);
 
   async function searchContent(append = false) {
@@ -57,9 +59,11 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
     seasonNumber: season, startingEpisode: startEpisode, serverName, providerName,
   }), [content, kind, slug, selected?.kind, season, startEpisode, serverName, providerName]);
 
-  async function submit() {
+  async function submit(validateOnly = true) {
     setNotice("");
     setResults([]);
+    setPreviewed(false);
+    setPreviewSummary(null);
     if (parsed.errors.length) {
       setNotice(parsed.errors.map((error) => error.message).join(" "));
       return;
@@ -73,15 +77,24 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
       const response = await fetch("/api/admin/bulk-links", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind, rows: parsed.rows }),
+        body: JSON.stringify({ kind, rows: parsed.rows, validateOnly }),
       });
       const payload = await response.json();
       if (!response.ok && !payload.summary) {
         setNotice(payload.error ?? "Import request failed.");
+      } else if (validateOnly) {
+        setResults(payload.results ?? []);
+        setPreviewSummary(payload.summary ?? null);
+        setPreviewed(true);
+        setNotice(payload.summary?.failed
+          ? "Review the failed rows below. Fix missing seasons/episodes or invalid links before importing."
+          : "Validation passed. Review the mapping, then confirm import.");
       } else {
         const summary = payload.summary;
-        setNotice(`Finished: ${summary.imported} imported, ${summary.skipped} skipped, ${summary.failed} failed.`);
+        setNotice(`Import finished: ${summary.imported} imported, ${summary.skipped} skipped, ${summary.failed} failed.`);
         setResults(payload.results ?? []);
+        setPreviewed(false);
+        setPreviewSummary(null);
       }
     } catch {
       setNotice("Network error. Check your connection and try again.");
@@ -132,8 +145,15 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
         </label>
         <div style={{ color: "var(--muted)", fontSize: 13 }}>{parsed.rows.length} row(s) parsed · {parsed.errors.length} validation issue(s) · max 100 per batch</div>
         {notice && <p role="status" style={{ border: "1px solid var(--line)", padding: 12, margin: 0 }}>{notice}</p>}
-        <button className="button button--primary" type="button" disabled={busy || !contentOptions.length || !selected || (kind === "stream" ? !servers.length : !providers.length)} onClick={submit}>{busy ? "Importing…" : "Validate & import links"}</button>
-        {results.length > 0 && <div aria-live="polite"><h2 style={{ fontSize: 18, marginBottom: 8 }}>Row results</h2><ul style={{ display: "grid", gap: 6, paddingLeft: 20 }}>{results.map((item) => <li key={item.row}><strong>Row {item.row} — {item.status}:</strong> {item.message}</li>)}</ul></div>}
+        <button className="button" type="button" disabled={busy || !contentOptions.length || !selected || (kind === "stream" ? !servers.length : !providers.length)} onClick={() => void submit(true)}>{busy ? "Checking…" : "1. Preview & validate"}</button>
+        {previewed && previewSummary && <div className="bulk-import-preview" role="status">
+          <strong>Validation summary</strong>
+          <div className="bulk-import-preview__counts"><span>{previewSummary.ready} ready</span><span>{previewSummary.skipped} skipped</span><span>{previewSummary.failed} failed</span></div>
+          {previewSummary.failed > 0 && <p>Import is blocked until failed rows are corrected. For missing episode mapping, open Seasons & Episodes, create the season and generate the required episode range, then preview again.</p>}
+          {previewSummary.failed === 0 && previewSummary.ready > 0 && <button className="button button--primary" type="button" disabled={busy} onClick={() => void submit(false)}>{busy ? "Importing…" : "2. Confirm & import"}</button>}
+          {previewSummary.ready === 0 && <p>No new valid links are ready to import.</p>}
+        </div>}
+        {results.length > 0 && <div aria-live="polite"><h2 style={{ fontSize: 18, marginBottom: 8 }}>{previewed ? "Validation results" : "Import results"}</h2><ul style={{ display: "grid", gap: 6, paddingLeft: 20 }}>{results.map((item) => <li key={item.row}><strong>Row {item.row} — {item.status}:</strong> {item.message}</li>)}</ul></div>}
       </div>
     </section>
   );

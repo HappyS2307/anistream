@@ -4,16 +4,23 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PlayerEpisode, PlayerSource } from "@/lib/player/player-utils.mjs";
 import type { ContentKind } from "@/lib/supabase/database.types";
 
+type ServerRow = {
+  id: string;
+  name: string;
+  hostname: string;
+  protection_enabled: boolean;
+};
+
 type SourceRow = {
   id: string;
   embed_url: string;
   server_id: string;
-  streaming_servers: { name: string; hostname: string; protection_enabled: boolean; enabled: boolean } | null;
+  episode_id?: string | null;
 };
 
-function mapSource(row: SourceRow): PlayerSource | null {
-  const server = row.streaming_servers;
-  if (!server?.enabled || !server.hostname) return null;
+function mapSource(row: SourceRow, servers: Map<string, ServerRow>): PlayerSource | null {
+  const server = servers.get(row.server_id);
+  if (!server) return null;
   return {
     id: row.id,
     serverName: server.name,
@@ -30,13 +37,25 @@ export async function getPublishedPlayback(
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
 
+  const { data: serverRows, error: serverError } = await supabase
+    .from("streaming_servers")
+    .select("id,name,hostname,protection_enabled")
+    .eq("enabled", true)
+    .order("name")
+    .limit(100);
+
+  if (serverError || !serverRows?.length) {
+    if (serverError) console.error("Playback server query failed:", serverError.message);
+    return [];
+  }
+  const servers = new Map(serverRows.map((server) => [server.id, server]));
+
   if (kind === "movie") {
     const { data, error } = await supabase
       .from("streaming_sources")
-      .select("id,embed_url,server_id,streaming_servers!inner(name,hostname,protection_enabled,enabled)")
+      .select("id,embed_url,server_id")
       .eq("content_id", contentId)
       .eq("enabled", true)
-      .eq("streaming_servers.enabled", true)
       .order("created_at", { ascending: true })
       .limit(20);
 
@@ -45,8 +64,8 @@ export async function getPublishedPlayback(
       return [];
     }
 
-    const sources = ((data ?? []) as unknown as SourceRow[])
-      .map(mapSource)
+    const sources = (data ?? [])
+      .map((row) => mapSource(row, servers))
       .filter((source): source is PlayerSource => source !== null);
     return sources.length ? [{ id: contentId, label: "Movie", sources }] : [];
   }
@@ -79,10 +98,9 @@ export async function getPublishedPlayback(
   const episodeIds = episodes.map((episode) => episode.id);
   const { data: sourceRows, error: sourcesError } = await supabase
     .from("streaming_sources")
-    .select("id,embed_url,server_id,episode_id,streaming_servers!inner(name,hostname,protection_enabled,enabled)")
+    .select("id,embed_url,server_id,episode_id")
     .in("episode_id", episodeIds)
     .eq("enabled", true)
-    .eq("streaming_servers.enabled", true)
     .order("created_at", { ascending: true })
     .limit(2000);
 
@@ -92,9 +110,9 @@ export async function getPublishedPlayback(
   }
 
   const sourcesByEpisode = new Map<string, PlayerSource[]>();
-  for (const row of (sourceRows ?? []) as unknown as Array<SourceRow & { episode_id: string }>) {
-    const source = mapSource(row);
-    if (!source) continue;
+  for (const row of sourceRows ?? []) {
+    const source = mapSource(row, servers);
+    if (!source || !row.episode_id) continue;
     const existing = sourcesByEpisode.get(row.episode_id) ?? [];
     existing.push(source);
     sourcesByEpisode.set(row.episode_id, existing);

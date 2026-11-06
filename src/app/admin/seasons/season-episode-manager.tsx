@@ -54,7 +54,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
   finally{setBusy(false);}
  }
  useEffect(()=>{void load();},[slug]);
- useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},250);return()=>window.clearTimeout(timer);},[query]);
+ useEffect(()=>{if(!query.trim())return;const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[query]);
 
  async function request(body:Record<string,unknown>){
   const r=await fetch("/api/admin/seasons",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
@@ -91,7 +91,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
 
   <section className="season-panel">
    <span className="season-step">STEP 1 · CHOOSE A TITLE</span><h2>Which title do you want to manage?</h2>
-   <input className="form-control season-title-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Type a title name to search…" aria-label="Search titles"/>
+   <input className="form-control season-title-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Type a title name to search…" aria-label="Search titles"/>{searchBusy&&<small className="season-search-status">Searching catalogue…</small>}
    <select className="form-control" value={slug} onChange={e=>setSlug(e.target.value)}><option value="">Choose a title…</option>{filtered.map(c=><option key={c.id} value={c.slug}>{c.title} · {c.kind.replace("_"," ")}</option>)}</select>
    {selected&&<p className="season-selected-title">Managing: <strong>{selected.title}</strong> · {seasons.length} seasons · {episodes.length} episodes</p>}
   </section>

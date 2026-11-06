@@ -2126,3 +2126,44 @@ a.admin-metric:hover { transform:translateY(-2px); border-color:rgb(238 123 110 
  .admin-workspace__content{width:100%;padding-inline:0}
 }
 @media(min-width:801px) and (max-width:1050px){.admin-workspace{grid-template-columns:210px minmax(0,1fr)}}
+
+
+/* Lightweight interaction feedback across touch and pointer devices. */
+button:not(:disabled),
+.button,
+.poster-card__link,
+.admin-workspace__nav a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:not(:disabled),
+.button {
+  transition:
+    transform 140ms ease,
+    filter 160ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+button:not(:disabled):active,
+.button:active {
+  transform: scale(0.975);
+  filter: brightness(1.08);
+}
+
+.poster-card__link:active .poster-card__artwork img {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

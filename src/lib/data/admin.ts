@@ -8,7 +8,8 @@ export type AdminPermission =
   | "links.import"
   | "content.manage"
   | "streaming.manage"
-  | "downloads.manage";
+  | "downloads.manage"
+  | "admin.manage";
 
 type AdminClient = SupabaseClient<Database>;
 

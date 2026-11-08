@@ -18,7 +18,7 @@ const frame = await readFile(
 test("Discover route is backed by the published catalogue and bounded filters", () => {
   assert.match(route, /getPublishedCatalogue\(/);
   assert.match(route, /limit: 48/);
-  assert.match(route, /query: firstValue\(params\.q\)\.trim\(\)\.slice\(0, 120\)/);
+  assert.match(route, /const query = firstValue\(params\.q\)\.trim\(\)\.slice\(0, 120\)/);
   assert.match(route, /function isContentKind/);
   assert.match(route, /publication/i);
   assert.match(route, /searchSampleTitles/);

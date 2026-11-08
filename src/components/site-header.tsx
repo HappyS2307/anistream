@@ -31,9 +31,7 @@ export function SiteHeader({
         </Link>
 
         <nav className="site-nav" aria-label="Browse categories">
-          <Link href="/explore" aria-current={activePage === "discover" ? "page" : undefined}>
-            Discover
-          </Link>
+          <Link href="/explore" aria-current={activePage === "discover" ? "page" : undefined}>Discover</Link>
           {categories.map((category) => (
             <Link
               key={category.href}
@@ -43,6 +41,8 @@ export function SiteHeader({
               {category.label}
             </Link>
           ))}
+          <Link href="/saved" aria-current={activePage === "saved" ? "page" : undefined}>Saved</Link>
+          <Link href="/profile" aria-current={activePage === "profile" ? "page" : undefined}>Profile</Link>
         </nav>
 
         <div className="site-header__actions">

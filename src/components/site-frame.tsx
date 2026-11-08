@@ -7,16 +7,18 @@ import { AdminWorkspace } from "@/components/admin-workspace";
 export function SiteFrame({
   children,
   activeCategory,
+  activePage,
 }: {
   children: ReactNode;
   activeCategory?: string;
+  activePage?: string;
 }) {
   return (
     <>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <SiteHeader activeCategory={activeCategory} />
+      <SiteHeader activeCategory={activeCategory} activePage={activePage} />
       <AdminBackButton />
       <AdminWorkspace>{children}</AdminWorkspace>
       <footer className="site-footer">

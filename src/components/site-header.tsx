@@ -6,7 +6,7 @@ const categories = [
   { label: "Anime", href: "/anime", id: "anime" },
   { label: "Drama", href: "/drama", id: "drama" },
   { label: "Web Series", href: "/web-series", id: "web-series" },
-  { label: "Movies", href: "/movies", id: "movies" },
+  { label: "Movies", href: "/movies", id: "movies" },\n  { label: "Upcoming", href: "/schedule", id: "schedule" },
 ];
 
 export function SiteHeader({ activeCategory }: { activeCategory?: string }) {

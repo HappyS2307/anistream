@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- catalogue job tables are migration-defined and absent from generated Supabase types. */
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/data/admin";
 

@@ -47,8 +47,9 @@ export async function POST(request: Request) {
   const cookie = request.headers.get("cookie") ?? "";
   const results: Array<{ tmdb_id: number; status: string; error?: string }> = [];
   for (const item of pending.data ?? []) {
+    const previousAttempt = await db.from("catalogue_import_job_items").select("attempts").eq("id", item.id).single();
     await db.from("catalogue_import_job_items").update({
-      status: "processing", attempts: (await db.from("catalogue_import_job_items").select("attempts").eq("id", item.id).single()).data?.attempts + 1 || 1,
+      status: "processing", attempts: (previousAttempt.data?.attempts ?? 0) + 1,
       updated_at: new Date().toISOString(),
     }).eq("id", item.id).eq("status", "pending");
     try {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- catalogue job tables are migration-defined and absent from generated Supabase types. */
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/data/admin";
 
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
   const ids = [...new Set(body.tmdb_ids.map(Number))];
   if (ids.some(id => !Number.isSafeInteger(id) || id < 1)) return json({ error: "Every TMDB ID must be a positive integer." }, 400);
 
-  const db = access.client as any;
+  const db = access.client;
   const job = await db.from("catalogue_import_jobs").insert({
     actor_id: access.userId, kind, total_items: ids.length, status: "queued",
   }).select("id").single();
@@ -48,7 +47,7 @@ export async function GET(request: Request) {
     access.status === "unauthenticated" ? 401 : access.status === "forbidden" ? 403 : 503);
   const id = new URL(request.url).searchParams.get("job_id");
   if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return json({ error: "A valid job_id is required." }, 400);
-  const db = access.client as any;
+  const db = access.client;
   const [job, items] = await Promise.all([
     db.from("catalogue_import_jobs").select("*").eq("id", id).eq("actor_id", access.userId).maybeSingle(),
     db.from("catalogue_import_job_items").select("tmdb_id,status,error_message,attempts").eq("job_id", id).order("tmdb_id"),

@@ -14,7 +14,8 @@ export function CatalogueImport() {
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
   const [bulkIds, setBulkIds] = useState("");
   const [jobId, setJobId] = useState("");
-  const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);\n  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
+  const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
+  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
 
   async function search() {
     if (!query.trim()) return;

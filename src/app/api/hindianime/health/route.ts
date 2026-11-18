@@ -72,19 +72,25 @@ export async function GET(request: Request) {
       });
     }
 
-    const stats = payload as ProviderStats;
+    const root = payload as ProviderStats & Record<string, unknown>;
+    const nested = isRecord(root.data) ? root.data : isRecord(root.stats) ? root.stats : root;
+    const stats = nested as ProviderStats;
     const count = (value: unknown) =>
       typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
-    const movies = count(stats.movies);
-    const series = count(stats.series);
-    const episodes = count(stats.total_episodes);
-    const activeStreams = count(stats.active_streams);
+    const movies = count(stats.movies ?? root.movies);
+    const series = count(stats.series ?? root.series);
+    const episodes = count(stats.total_episodes ?? root.total_episodes);
+    const activeStreams = count(stats.active_streams ?? root.active_streams);
+    const statusOk = root.status === "ok" || root.success === true || stats.status === "ok";
 
-    if (stats.status !== "ok" || movies === null || series === null || episodes === null) {
+    if (!statusOk || movies === null || series === null || episodes === null) {
       return NextResponse.json({
         ok: false,
         service: "hindianime",
         provider: "invalid-response",
+        response_keys: Object.keys(root).slice(0, 20),
+        nested_keys: Object.keys(nested).slice(0, 20),
+        response_status: typeof root.status === "string" ? root.status : null,
         error: "HindiAnime returned an unexpected stats response.",
       }, { status: 502, headers: { "Cache-Control": "no-store" } });
     }

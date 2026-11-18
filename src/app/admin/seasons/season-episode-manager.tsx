@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect -- effects trigger asynchronous catalogue/season loading for the selected slug. */
 "use client";
 import {useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
@@ -57,7 +56,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Load failed");}
   finally{setBusy(false);}
  }
- useEffect(()=>{void load();},[slug]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[slug]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[query]);
 
  async function request(body:Record<string,unknown>){

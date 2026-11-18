@@ -7,16 +7,29 @@ const reply = (body: unknown, status = 200) => NextResponse.json(body, {
   status, headers: { "Cache-Control": "private, no-store" },
 });
 
-async function tmdb(path: string, signal?: AbortSignal) {
+async function tmdb(path: string) {
   const token = process.env.TMDB_API_READ_ACCESS_TOKEN;
   if (!token) throw new Error("TMDB_API_READ_ACCESS_TOKEN is not configured.");
   const response = await fetch(`https://api.themoviedb.org/3${path}`, {
     headers: { Authorization: `Bearer ${token}`, accept: "application/json" },
-    signal: signal ?? AbortSignal.timeout(12000),
-    cache: "no-store",
+    signal: AbortSignal.timeout(12000), cache: "no-store",
   });
   if (!response.ok) throw new Error(`TMDB request failed (${response.status}).`);
   return response.json();
+}
+
+async function mapWithConcurrency<T, R>(items: T[], limit: number, task: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (true) {
+      const index = next++;
+      if (index >= items.length) return;
+      results[index] = await task(items[index]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
 }
 
 export async function POST(request: Request) {
@@ -42,7 +55,7 @@ export async function POST(request: Request) {
     const seasons = media === "tv"
       ? (detail.seasons ?? []).filter((season: { season_number: number }) => season.season_number > 0).slice(0, 30)
       : [];
-    const seasonDetails = await Promise.all(seasons.map(async (season: { season_number: number; name: string; overview: string }) => {
+    const seasonDetails = await mapWithConcurrency(seasons, 4, async (season: { season_number: number; name: string; overview: string }) => {
       const data = await tmdb(`/tv/${id}/season/${season.season_number}?language=en-US`);
       const episodes = (data.episodes ?? []).slice(0, 300).map((episode: Record<string, unknown>) => ({
         episode_number: Number(episode.episode_number),
@@ -51,7 +64,7 @@ export async function POST(request: Request) {
       })).filter((episode: { episode_number: number }) => Number.isInteger(episode.episode_number) && episode.episode_number > 0);
       return { season_number: Number(season.season_number), title: String(data.name ?? season.name ?? "").slice(0, 180),
         synopsis: String(data.overview ?? season.overview ?? "").slice(0, 5000), episodes };
-    }));
+    });
     const firstDate = String(detail.first_air_date ?? detail.release_date ?? "");
     const trailer = detail.videos?.results?.find((video: {site:string;type:string;official?:boolean;key:string}) =>
       video.site === "YouTube" && video.type === "Trailer" && video.official)

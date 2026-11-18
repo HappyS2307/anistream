@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- effects synchronize URL parameters and async season data with form state. */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

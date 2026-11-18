@@ -71,8 +71,8 @@ Build a fast, simple admin workflow for importing catalogue metadata and episode
 - [x] Repository and existing feature audit.
 - [x] Isolated feature branch created: `feat/auto-import-foundation`.
 - [x] Architecture and phased delivery plan documented.
-- [ ] Auto-import UI and idempotent metadata/episode persistence.
-- [ ] Resumable bulk catalogue jobs.
+- [x] Admin-only TMDB auto-import UI and idempotent metadata/season/episode persistence (requires migration).
+- [x] Supabase-backed bulk catalogue jobs (up to 5,000 IDs), batch processing, progress, retry of failed items, and recovery of interrupted batches. Processing is admin-page-driven; it is not a continuously running server queue.
 - [ ] Provider permission/contract verification and playback connector.
 - [ ] Upcoming/airing discovery and schedule UI.
-- [ ] Automated verification and deployment.
+- [ ] Automated verification, non-production migration validation, and deployment.

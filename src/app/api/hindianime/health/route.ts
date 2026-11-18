@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   const base = process.env.HINDIANIME_WORKER_URL;
   if (!base) {

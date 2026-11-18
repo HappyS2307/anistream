@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- initial server refresh is an external data subscription/fetch. */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";

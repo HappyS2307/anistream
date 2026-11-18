@@ -22,7 +22,7 @@ All data routes require the `x-api-key` header. The Worker only forwards fixed, 
 4. Set the same value as encrypted `HINDIANIME_API_KEY` in the AniStream Vercel project.
 5. Set `HINDIANIME_WORKER_URL` to the Worker URL in AniStream Vercel, then redeploy.
 
-The Worker currently exists in Cloudflare. Its secret binding is intentionally not configured yet, so data routes return 401 until the secret is set in Cloudflare and Vercel. Do not remove API-key validation or expose the provider proxy without authentication.
+The Worker has been deployed to `https://anistream-hindianime-api.crunchyrollhindianime.workers.dev`. Its `API_KEY` secret binding is configured in Cloudflare, and the matching encrypted `HINDIANIME_API_KEY` plus `HINDIANIME_WORKER_URL` variables are configured for AniStream Preview and Production in Vercel. A fresh Preview redeployment is running to load these environment variables. Do not remove API-key validation or expose the provider proxy without authentication.
 
 ## Security and limitations
 

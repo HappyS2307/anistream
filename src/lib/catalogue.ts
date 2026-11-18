@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- homepage_sections is migration-defined and absent from generated Supabase types. */
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";

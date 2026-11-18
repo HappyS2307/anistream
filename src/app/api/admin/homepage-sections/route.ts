@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- homepage_sections is migration-defined and absent from generated Supabase types. */
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/data/admin";
 const allowed = new Set(["latest","anime","drama","web_series","movies","discover_banner"]);

@@ -14,7 +14,7 @@ export function CatalogueImport() {
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
   const [bulkIds, setBulkIds] = useState("");
   const [jobId, setJobId] = useState("");
-  const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
+  const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);\n  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
 
   async function search() {
     if (!query.trim()) return;
@@ -66,6 +66,20 @@ export function CatalogueImport() {
     catch (error) { setNotice(error instanceof Error ? error.message : "Retry failed."); } finally { setBusy(false); }
   }
 
+  async function checkHindiAnime() {
+    if (!selected) return;
+    setBusy(true); setProviderResult(null); setNotice("Checking HindiAnime availability…");
+    try {
+      const params = new URLSearchParams({ tmdb_id: String(selected.id), kind });
+      const response = await fetch(`/api/admin/hindianime?${params}`, { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "HindiAnime lookup failed.");
+      setProviderResult(data);
+      setNotice(data.available ? "HindiAnime match found. Review availability details below." : "No HindiAnime match found for this TMDB ID.");
+    } catch (error) { setNotice(error instanceof Error ? error.message : "HindiAnime lookup failed."); }
+    finally { setBusy(false); }
+  }
+
   async function importSelected() {
     if (!selected) return;
     const confirmed = window.confirm(`Import "${selected.title}" with its TMDB seasons and episodes? The title will remain Draft and will not be public until you publish it.`);
@@ -103,7 +117,7 @@ export function CatalogueImport() {
       {selected && <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
         <strong>Selected: {selected.title}</strong>
         <p style={{ color: "var(--muted)" }}>This imports available TMDB season and episode records. It does not import or create video links.</p>
-        <button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Importing…" : "Import title + episodes"}</button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" className="button button--quiet" disabled={busy} onClick={() => void checkHindiAnime()}>Check HindiAnime</button><button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Please wait…" : "Import title + episodes"}</button></div>
       </div>}
       <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 8, display: "grid", gap: 10 }}>
         <h2 style={{ fontSize: 20 }}>Bulk catalogue import</h2>
@@ -116,6 +130,15 @@ export function CatalogueImport() {
           <button type="button" className="button button--quiet" disabled={busy} onClick={() => void retryFailed()}>Retry failed items</button>
         </div>}
       </div>
+      {providerResult && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 6 }}>
+        <strong>HindiAnime availability</strong>
+        <span>{providerResult.available ? "Match available" : "No match / unavailable"}</span>
+        {providerResult.title ? <span>Provider title: {String(providerResult.title)}</span> : null}
+        {providerResult.season_count !== undefined ? <span>Seasons: {String(providerResult.season_count)} · Episodes: {String(providerResult.episode_count ?? 0)}</span> : null}
+        {Array.isArray(providerResult.audio_options) ? <span>Audio options: {(providerResult.audio_options as string[]).join(", ") || "Not reported"}</span> : null}
+        {providerResult.has_player_urls ? <span>Player URLs: Available (not yet imported)</span> : <span>Player URLs: Not confirmed</span>}
+        <small style={{ color: "var(--muted)" }}>This is an availability check only. It does not add playback links or bypass provider restrictions.</small>
+      </div>}
       {notice && <p role="status" style={{ color: "var(--muted)" }}>{notice}</p>}
       {summary && <pre className="surface-card" style={{ padding: 14, whiteSpace: "pre-wrap" }}>{JSON.stringify(summary, null, 2)}</pre>}
     </div>

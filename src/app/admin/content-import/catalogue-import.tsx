@@ -12,6 +12,9 @@ export function CatalogueImport() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
+  const [bulkIds, setBulkIds] = useState("");
+  const [jobId, setJobId] = useState("");
+  const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
 
   async function search() {
     if (!query.trim()) return;
@@ -25,6 +28,42 @@ export function CatalogueImport() {
       if (!(data.results ?? []).length) setNotice("No matching titles found.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "Search failed."); }
     finally { setBusy(false); }
+  }
+
+  async function startBulkImport() {
+    const ids = [...new Set(bulkIds.split(/[\\s,;]+/).map(value => value.trim()).filter(Boolean))];
+    if (!ids.length || ids.length > 5000 || ids.some(value => !/^\\d+$/.test(value) || Number(value) < 1)) { setNotice("Enter 1–5000 valid TMDB numeric IDs, separated by commas or new lines."); return; }
+    setBusy(true); setNotice("Creating bulk import job…");
+    try {
+      const response = await fetch("/api/admin/catalogue-import-jobs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind, tmdb_ids: ids.map(Number) }) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Could not create bulk job.");
+      setJobId(data.job_id); setJobStatus(data); setNotice(`Bulk job created with ${data.total_items} unique titles. Press Process job to begin.`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Bulk job creation failed."); }
+    finally { setBusy(false); }
+  }
+
+  async function processBulkJob() {
+    if (!jobId) return; setBusy(true); setNotice("Processing catalogue import batches…");
+    try {
+      let status = "queued";
+      while (status === "queued" || status === "processing") {
+        const response = await fetch("/api/admin/catalogue-import-jobs/process", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ job_id: jobId }) });
+        const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Batch processing failed.");
+        const check = await fetch(`/api/admin/catalogue-import-jobs?job_id=${jobId}`, { cache: "no-store" });
+        const snapshot = await check.json(); if (!check.ok) throw new Error(snapshot.error ?? "Could not refresh job status.");
+        setJobStatus(snapshot.job); status = String(snapshot.job.status);
+        setNotice(`Bulk import: ${snapshot.job.processed_items}/${snapshot.job.total_items} processed · ${snapshot.job.imported_items} imported · ${snapshot.job.failed_items} failed.`);
+        if (status === "processing" || status === "queued") await new Promise(resolve => setTimeout(resolve, 350));
+      }
+      setNotice(`Bulk job finished: ${status}. Review failed items and retry if needed.`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Bulk processing stopped. You can resume the job."); }
+    finally { setBusy(false); }
+  }
+
+  async function retryFailed() {
+    if (!jobId) return; setBusy(true);
+    try { const response = await fetch("/api/admin/catalogue-import-jobs/process", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ job_id: jobId, action: "retry_failed" }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Retry failed."); setNotice("Failed items queued again. Press Process job to resume."); setJobStatus({ status: "queued" }); }
+    catch (error) { setNotice(error instanceof Error ? error.message : "Retry failed."); } finally { setBusy(false); }
   }
 
   async function importSelected() {
@@ -66,6 +105,17 @@ export function CatalogueImport() {
         <p style={{ color: "var(--muted)" }}>This imports available TMDB season and episode records. It does not import or create video links.</p>
         <button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Importing…" : "Import title + episodes"}</button>
       </div>}
+      <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 8, display: "grid", gap: 10 }}>
+        <h2 style={{ fontSize: 20 }}>Bulk catalogue import</h2>
+        <p style={{ color: "var(--muted)" }}>Paste up to 5,000 TMDB IDs, separated by commas or new lines. Jobs process in small batches and can be resumed. All imported titles remain Draft.</p>
+        <textarea className="form-control" rows={5} value={bulkIds} onChange={event => setBulkIds(event.target.value)} placeholder={"13916\\n42511\\n46260"} aria-label="TMDB IDs for bulk import" />
+        <button type="button" className="button button--quiet" disabled={busy || !bulkIds.trim()} onClick={() => void startBulkImport()}>Create bulk job</button>
+        {jobId && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 8 }}>
+          <small>Job: {jobId}</small><strong>Status: {String(jobStatus?.status ?? "queued")}</strong>
+          <button type="button" className="button button--primary" disabled={busy} onClick={() => void processBulkJob()}>{busy ? "Processing…" : "Process / Resume job"}</button>
+          <button type="button" className="button button--quiet" disabled={busy} onClick={() => void retryFailed()}>Retry failed items</button>
+        </div>}
+      </div>
       {notice && <p role="status" style={{ color: "var(--muted)" }}>{notice}</p>}
       {summary && <pre className="surface-card" style={{ padding: 14, whiteSpace: "pre-wrap" }}>{JSON.stringify(summary, null, 2)}</pre>}
     </div>

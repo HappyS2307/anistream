@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- catalogue job tables are migration-defined and absent from generated Supabase types. */
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/data/admin";
 
@@ -15,7 +14,7 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return json({ error: "Invalid JSON request." }, 400); }
   if (!body.job_id || !/^[0-9a-f-]{36}$/i.test(body.job_id)) return json({ error: "A valid job_id is required." }, 400);
 
-  const db = access.client as any;
+  const db = access.client;
   const jobResult = await db.from("catalogue_import_jobs").select("*")
     .eq("id", body.job_id).eq("actor_id", access.userId).maybeSingle();
   if (jobResult.error || !jobResult.data) return json({ error: "Import job not found." }, 404);

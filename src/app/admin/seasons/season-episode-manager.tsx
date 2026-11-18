@@ -42,9 +42,9 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    if(!found.length&&!append)setMessage("No matching titles. Try another search.");
   }catch(e){if(requestId===searchRequest.current){setError(true);setMessage(e instanceof Error?e.message:"Search failed");}}
   finally{if(requestId===searchRequest.current)setSearchBusy(false);}
- }
+ },[query,searchPage,slug]);
 
- async function load(value=slug){
+ const load=useCallback(async (value=slug)=>{
   if(!value){setSeasons([]);setEpisodes([]);setSeasonId("");return;}
   setBusy(true);
   try{
@@ -55,9 +55,9 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    setSeasonNo(String(Math.max(0,...(d.seasons||[]).map((s:S)=>s.season_number))+1));
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Load failed");}
   finally{setBusy(false);}
- }
- useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[slug]);
- useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[query]);
+ },[slug]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[searchTitles]);
 
  async function request(body:Record<string,unknown>){
   const r=await fetch("/api/admin/seasons",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});

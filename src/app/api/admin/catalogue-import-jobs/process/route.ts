@@ -35,6 +35,9 @@ export async function POST(request: Request) {
   }
   if (job.status === "cancelled" || job.status === "completed") return json({ status: job.status });
 
+  // Recover a batch interrupted by a browser close or request timeout.
+  await db.from("catalogue_import_job_items").update({ status: "pending", updated_at: new Date().toISOString() })
+    .eq("job_id", job.id).eq("status", "processing");
   await db.from("catalogue_import_jobs").update({ status: "processing", updated_at: new Date().toISOString() }).eq("id", job.id);
   const pending = await db.from("catalogue_import_job_items").select("id,tmdb_id")
     .eq("job_id", job.id).eq("status", "pending").order("tmdb_id").limit(3);

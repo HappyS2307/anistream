@@ -12,7 +12,7 @@ export default function SchedulePage() {
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    fetch("/api/schedule", { next: { revalidate: 1800 } } as RequestInit)
+    fetch("/api/schedule", { cache: "no-store" })
       .then(async response => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Schedule unavailable."); return data; })
       .then(data => { if (active) setItems(data.items ?? []); })
       .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : "Schedule unavailable."); })

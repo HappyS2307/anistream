@@ -15,8 +15,8 @@ declare
   season_row jsonb;
   episode_row jsonb;
   season_id uuid;
-  created_seasons integer := 0;
-  created_episodes integer := 0;
+  processed_seasons integer := 0;
+  processed_episodes integer := 0;
 begin
   if actor is null or not public.has_admin_permission('content.manage') then
     raise exception using errcode = '42501', message = 'Content management permission required.';
@@ -82,13 +82,13 @@ begin
         nullif(episode_row->>'synopsis',''))
       on conflict (season_id, episode_number) do update set
         title = excluded.title, synopsis = excluded.synopsis, updated_at = now();
-      created_episodes := created_episodes + 1;
+      processed_episodes := processed_episodes + 1;
     end loop;
-    created_seasons := created_seasons + 1;
+    processed_seasons := processed_seasons + 1;
   end loop;
 
-  return jsonb_build_object('content_id', content_id, 'seasons_processed', created_seasons,
-    'episodes_processed', created_episodes, 'publication_status', 'draft');
+  return jsonb_build_object('content_id', content_id, 'seasons_processed', processed_seasons,
+    'episodes_processed', processed_episodes, 'publication_status', 'draft');
 end;
 $function$;
 

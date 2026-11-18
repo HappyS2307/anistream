@@ -17,6 +17,6 @@ export async function PATCH(request: Request) {
  const client=access.client;
  const results=await Promise.all(rows.map(row=>client.from("homepage_sections").update({title:row.title,enabled:row.enabled,sort_order:row.sort_order}).eq("section_key",row.section_key)));
  const failed=results.find((result)=>result.error);
- if(failed) return NextResponse.json({error:failed.error.message},{status:400});
+ if(failed?.error) return NextResponse.json({error:failed.error.message},{status:400});
  return NextResponse.json({ok:true});
 }

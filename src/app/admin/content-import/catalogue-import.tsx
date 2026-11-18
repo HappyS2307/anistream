@@ -31,8 +31,8 @@ export function CatalogueImport() {
   }
 
   async function startBulkImport() {
-    const ids = [...new Set(bulkIds.split(/[\\s,;]+/).map(value => value.trim()).filter(Boolean))];
-    if (!ids.length || ids.length > 5000 || ids.some(value => !/^\\d+$/.test(value) || Number(value) < 1)) { setNotice("Enter 1–5000 valid TMDB numeric IDs, separated by commas or new lines."); return; }
+    const ids = [...new Set(bulkIds.split(/[\s,;]+/).map(value => value.trim()).filter(Boolean))];
+    if (!ids.length || ids.length > 5000 || ids.some(value => !/^\d+$/.test(value) || Number(value) < 1)) { setNotice("Enter 1–5000 valid TMDB numeric IDs, separated by commas or new lines."); return; }
     setBusy(true); setNotice("Creating bulk import job…");
     try {
       const response = await fetch("/api/admin/catalogue-import-jobs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind, tmdb_ids: ids.map(Number) }) });
@@ -108,7 +108,7 @@ export function CatalogueImport() {
       <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 8, display: "grid", gap: 10 }}>
         <h2 style={{ fontSize: 20 }}>Bulk catalogue import</h2>
         <p style={{ color: "var(--muted)" }}>Paste up to 5,000 TMDB IDs, separated by commas or new lines. Jobs process in small batches and can be resumed. All imported titles remain Draft.</p>
-        <textarea className="form-control" rows={5} value={bulkIds} onChange={event => setBulkIds(event.target.value)} placeholder={"13916\\n42511\\n46260"} aria-label="TMDB IDs for bulk import" />
+        <textarea className="form-control" rows={5} value={bulkIds} onChange={event => setBulkIds(event.target.value)} placeholder={"13916\n42511\n46260"} aria-label="TMDB IDs for bulk import" />
         <button type="button" className="button button--quiet" disabled={busy || !bulkIds.trim()} onClick={() => void startBulkImport()}>Create bulk job</button>
         {jobId && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 8 }}>
           <small>Job: {jobId}</small><strong>Status: {String(jobStatus?.status ?? "queued")}</strong>

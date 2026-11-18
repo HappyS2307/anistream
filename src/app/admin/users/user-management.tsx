@@ -11,7 +11,7 @@ const permissionOptions = [
 ];
 const emptyPermissions = Object.fromEntries(permissionOptions.map(item=>[item.key,false]));
 export function UserManagement({initialItems,currentUserId}:{initialItems:Item[];currentUserId:string}) {
-  const [items,setItems]=useState(initialItems);
+  const [items]=useState(initialItems);
   const [userId,setUserId]=useState("");
   const [permissions,setPermissions]=useState<Record<string,boolean>>({...emptyPermissions, "content.manage":true});
   const [editingId,setEditingId]=useState<string|null>(null);

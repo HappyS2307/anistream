@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- homepage_sections is added by a migration and is not yet present in generated Supabase types. */
 import Link from "next/link";
 import { SiteFrame } from "@/components/site-frame";
 import { getAdminAccess } from "@/lib/data/admin";

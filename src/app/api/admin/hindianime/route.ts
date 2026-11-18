@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   try {
     const media = kind === "movie" ? "movies" : "series";
     const endpoint = new URL(`/v1/hindianime/${media}/${id}`, base);
-    const headers: HeadersInit = { accept: "application/json" };
+    const headers: Record<string, string> = { accept: "application/json" };
     if (process.env.HINDIANIME_API_KEY) headers["x-api-key"] = process.env.HINDIANIME_API_KEY;
     const response = await fetch(endpoint, { headers, cache: "no-store", signal: AbortSignal.timeout(12000) });
     if (!response.ok) return json({ available: false, error: response.status === 404 ? "No HindiAnime match found." : `HindiAnime provider returned ${response.status}.` }, response.status === 404 ? 200 : 502);

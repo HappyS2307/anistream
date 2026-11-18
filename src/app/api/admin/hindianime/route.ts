@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- provider payload is an external, schema-variable JSON response. */
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/data/admin";
 

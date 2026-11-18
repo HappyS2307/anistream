@@ -39,7 +39,7 @@ begin
     publication_status
   ) values (
     (p_content->>'tmdb_id')::bigint,
-    lower(regexp_replace(regexp_replace(btrim(p_content->>'title'), '[^a-zA-Z0-9]+', '-', 'g'), '(^-|-$)', '', 'g'))
+    coalesce(nullif(trim(both '-' from lower(regexp_replace(btrim(p_content->>'title'), '[^a-zA-Z0-9]+', '-', 'g'))), ''), 'tmdb')
       || '-' || (p_content->>'tmdb_id'),
     p_content->>'kind', btrim(p_content->>'title'), nullif(p_content->>'synopsis',''),
     nullif(p_content->>'original_title',''), nullif(p_content->>'poster_url',''),

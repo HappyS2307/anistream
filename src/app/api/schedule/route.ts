@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const revalidate = 1800;
 const IMAGE = "https://image.tmdb.org/t/p/";
 export async function GET() {
   const token = process.env.TMDB_API_READ_ACCESS_TOKEN;

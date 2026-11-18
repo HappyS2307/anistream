@@ -41,7 +41,7 @@ begin
     (p_content->>'tmdb_id')::bigint,
     coalesce(nullif(trim(both '-' from lower(regexp_replace(btrim(p_content->>'title'), '[^a-zA-Z0-9]+', '-', 'g'))), ''), 'tmdb')
       || '-' || (p_content->>'tmdb_id'),
-    p_content->>'kind', btrim(p_content->>'title'), nullif(p_content->>'synopsis',''),
+    (p_content->>'kind')::public.content_kind, btrim(p_content->>'title'), nullif(p_content->>'synopsis',''),
     nullif(p_content->>'original_title',''), nullif(p_content->>'poster_url',''),
     nullif(p_content->>'banner_url',''), nullif(p_content->>'release_date','')::date,
     nullif(p_content->>'release_year','')::smallint, nullif(p_content->>'end_date','')::date,
@@ -52,7 +52,7 @@ begin
     array(select jsonb_array_elements_text(coalesce(p_content->'language_codes','[]'::jsonb))),
     nullif(p_content->>'content_status',''), nullif(p_content->>'runtime_minutes','')::integer,
     nullif(p_content->>'total_episodes','')::integer, nullif(p_content->>'trailer_url',''),
-    'draft'
+    'draft'::public.publication_status
   )
   on conflict (tmdb_id) where tmdb_id is not null do update set
     title = excluded.title, synopsis = excluded.synopsis, original_title = excluded.original_title,

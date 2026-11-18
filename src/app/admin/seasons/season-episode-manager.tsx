@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- effects trigger asynchronous catalogue/season loading for the selected slug. */
 "use client";
 import {useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";

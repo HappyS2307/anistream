@@ -18,15 +18,18 @@ export function CatalogueImport() {
   const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
 
   const [adapterHealth, setAdapterHealth] = useState<"checking" | "online" | "offline">("checking");
+  const [adapterStats, setAdapterStats] = useState<Record<string, number> | null>(null);
 
   async function checkAdapterHealth() {
     setAdapterHealth("checking");
     try {
-      const response = await fetch("/api/hindianime/health", { cache: "no-store" });
+      const response = await fetch("/api/hindianime/health?provider=1", { cache: "no-store" });
       const data = await response.json();
-      setAdapterHealth(response.ok && data.ok === true ? "online" : "offline");
+      setAdapterHealth(response.ok && data.ok === true && data.provider === "online" ? "online" : "offline");
+      setAdapterStats(response.ok && data.ok === true ? data.stats ?? null : null);
     } catch {
       setAdapterHealth("offline");
+      setAdapterStats(null);
     }
   }
 
@@ -117,7 +120,7 @@ export function CatalogueImport() {
     <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-.05em" }}>Catalogue auto import</h1>
     <p style={{ color: "var(--muted)", maxWidth: 700 }}>Search TMDB, select a title, then import its metadata, seasons and episode titles. Imported titles stay Draft. Manual content creation remains available.</p>
     <div className="surface-card" style={{ padding: 22, display: "grid", gap: 14, marginTop: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><span>HindiAnime adapter: <strong>{adapterHealth === "checking" ? "Not checked" : adapterHealth === "online" ? "Online" : "Unavailable"}</strong></span><button type="button" className="button button--quiet" onClick={() => void checkAdapterHealth()}>Check adapter</button></div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><span>HindiAnime provider: <strong>{adapterHealth === "checking" ? "Not checked" : adapterHealth === "online" ? "Online" : "Unavailable"}</strong>{adapterStats ? <small style={{ display: "block", color: "var(--muted)" }}>{adapterStats.series} series · {adapterStats.movies} movies · {adapterStats.total_episodes} episodes</small> : null}</span><button type="button" className="button button--quiet" onClick={() => void checkAdapterHealth()}>Check provider</button></div>
       <label>Content category<select className="form-control" value={kind} onChange={event => { setKind(event.target.value as typeof kind); setResults([]); setSelected(null); }} style={{ display: "block", width: "100%", marginTop: 6 }}>
         <option value="anime">Anime / Animation</option><option value="drama">Drama</option><option value="web_series">Web Series</option><option value="movie">Movie</option>
       </select></label>

@@ -46,7 +46,6 @@ export async function GET(request: Request) {
       episode_count: episodes.length,
       audio_options: audioOptions,
       has_player_urls: Boolean(data.player_url ?? data.playerUrl) || episodes.some((episode: any) => Boolean(episode.player_url ?? episode.playerUrl)),
-      detail: responseData,
     });
   } catch (error) {
     return json({ available: false, error: error instanceof Error ? error.message : "HindiAnime lookup failed." }, 502);

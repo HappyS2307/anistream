@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminAccess } from "@/lib/data/admin";
 
-export const dynamic = "force-dynamic";
 const json = (body: unknown, status = 200) => NextResponse.json(body, {
   status, headers: { "Cache-Control": "private, no-store" },
 });

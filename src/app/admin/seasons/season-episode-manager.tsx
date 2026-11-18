@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useMemo,useRef,useState} from "react";
+import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
 
 type C={id:string;slug:string;title:string;kind:string};
@@ -27,7 +27,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const current=seasons.find(x=>x.id===seasonId);
  const visible=useMemo(()=>episodes.filter(x=>x.season_id===seasonId).sort((a,b)=>a.episode_number-b.episode_number),[episodes,seasonId]);
  const filtered=searchResults;
- async function searchTitles(append=false){
+ const searchTitles=useCallback(async (append=false)=>{
   const requestId=++searchRequest.current;
   setSearchBusy(true);setError(false);setMessage("");
   const page=append?searchPage+1:0;
@@ -96,6 +96,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    <span className="season-step">STEP 1 · CHOOSE A TITLE</span><h2>Which title do you want to manage?</h2>
    <input className="form-control season-title-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Type a title name to search…" aria-label="Search titles"/>{searchBusy&&<small className="season-search-status">Searching catalogue…</small>}
    <select className="form-control" value={slug} onChange={e=>setSlug(e.target.value)}><option value="">Choose a title…</option>{filtered.map(c=><option key={c.id} value={c.slug}>{c.title} · {c.kind.replace("_"," ")}</option>)}</select>
+   {searchHasMore&&<button type="button" className="button" disabled={searchBusy} onClick={()=>void searchTitles(true)}>Load more titles</button>}
    {selected&&<p className="season-selected-title">Managing: <strong>{selected.title}</strong> · {seasons.length} seasons · {episodes.length} episodes</p>}
   </section>
 

@@ -17,6 +17,19 @@ export function CatalogueImport() {
   const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
   const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
 
+  const [adapterHealth, setAdapterHealth] = useState<"checking" | "online" | "offline">("checking");
+
+  async function checkAdapterHealth() {
+    setAdapterHealth("checking");
+    try {
+      const response = await fetch("/api/hindianime/health", { cache: "no-store" });
+      const data = await response.json();
+      setAdapterHealth(response.ok && data.ok === true ? "online" : "offline");
+    } catch {
+      setAdapterHealth("offline");
+    }
+  }
+
   async function search() {
     if (!query.trim()) return;
     setBusy(true); setNotice(""); setSelected(null); setSummary(null);
@@ -104,6 +117,7 @@ export function CatalogueImport() {
     <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-.05em" }}>Catalogue auto import</h1>
     <p style={{ color: "var(--muted)", maxWidth: 700 }}>Search TMDB, select a title, then import its metadata, seasons and episode titles. Imported titles stay Draft. Manual content creation remains available.</p>
     <div className="surface-card" style={{ padding: 22, display: "grid", gap: 14, marginTop: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><span>HindiAnime adapter: <strong>{adapterHealth === "checking" ? "Not checked" : adapterHealth === "online" ? "Online" : "Unavailable"}</strong></span><button type="button" className="button button--quiet" onClick={() => void checkAdapterHealth()}>Check adapter</button></div>
       <label>Content category<select className="form-control" value={kind} onChange={event => { setKind(event.target.value as typeof kind); setResults([]); setSelected(null); }} style={{ display: "block", width: "100%", marginTop: 6 }}>
         <option value="anime">Anime / Animation</option><option value="drama">Drama</option><option value="web_series">Web Series</option><option value="movie">Movie</option>
       </select></label>

@@ -31,7 +31,7 @@ alter table public.catalogue_import_jobs enable row level security;
 alter table public.catalogue_import_job_items enable row level security;
 
 revoke all on public.catalogue_import_jobs, public.catalogue_import_job_items from public, anon;
-grant select, insert, update on public.catalogue_import_jobs to authenticated;
+grant select, insert, update, delete on public.catalogue_import_jobs to authenticated;
 grant select, insert, update on public.catalogue_import_job_items to authenticated;
 
 create policy catalogue_import_jobs_select_own
@@ -44,6 +44,9 @@ create policy catalogue_import_jobs_update_own
   on public.catalogue_import_jobs for update to authenticated
   using (actor_id = (select auth.uid()) and public.has_admin_permission('content.manage'))
   with check (actor_id = (select auth.uid()) and public.has_admin_permission('content.manage'));
+create policy catalogue_import_jobs_delete_own
+  on public.catalogue_import_jobs for delete to authenticated
+  using (actor_id = (select auth.uid()) and public.has_admin_permission('content.manage'));
 
 create policy catalogue_import_items_select_own
   on public.catalogue_import_job_items for select to authenticated

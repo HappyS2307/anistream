@@ -18,8 +18,8 @@ export async function POST(request: Request) {
     body = JSON.parse(raw);
   } catch { return json({ error: "Invalid JSON request." }, 400); }
 
-  const kind = body.kind;
-  if (!allowedKinds.includes(kind as typeof allowedKinds[number])) return json({ error: "Invalid content category." }, 400);
+  if (typeof body.kind !== "string" || !allowedKinds.includes(body.kind as typeof allowedKinds[number])) return json({ error: "Invalid content category." }, 400);
+  const kind = body.kind as typeof allowedKinds[number];
   if (!Array.isArray(body.tmdb_ids) || body.tmdb_ids.length < 1 || body.tmdb_ids.length > 5000) {
     return json({ error: "Provide between 1 and 5000 TMDB IDs." }, 400);
   }

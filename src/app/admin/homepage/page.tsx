@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- homepage_sections is added by a migration and is not yet present in generated Supabase types. */
 import Link from "next/link";
 import { SiteFrame } from "@/components/site-frame";
 import { getAdminAccess } from "@/lib/data/admin";
@@ -17,7 +16,7 @@ export default async function HomepageStudioPage(){
   const message=access.status==="unauthenticated"?"Sign in with an authorised admin account.":access.status==="forbidden"?"Your account does not have content-management permission.":"Homepage settings are unavailable. Check Supabase configuration and migrations.";
   return <SiteFrame><main className="page-container" style={{paddingBlock:56}}><p className="eyebrow">ANISTREAM / HOMEPAGE</p><h1>Homepage studio</h1><p>{message}</p><Link className="button button--primary" href="/admin">Back to dashboard</Link></main></SiteFrame>;
  }
- const {data,error}=await (access.client as any).from("homepage_sections").select("section_key,title,enabled,sort_order").order("sort_order");
+ const {data,error}=await (access.client).from("homepage_sections").select("section_key,title,enabled,sort_order").order("sort_order");
  return <SiteFrame><main className="page-container" style={{paddingBlock:"42px 80px",maxWidth:1000}}>
   <p className="eyebrow">ANISTREAM / EDITORIAL CONTROL</p><h1 style={{fontSize:"clamp(2rem,5vw,3rem)",margin:"8px 0"}}>Homepage studio</h1>
   <p style={{color:"var(--muted)",maxWidth:700}}>Rename, show or hide homepage sections and change their display order. The featured hero title is managed separately in Content Library.</p>

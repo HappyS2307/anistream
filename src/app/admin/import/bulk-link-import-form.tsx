@@ -43,7 +43,6 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
     if (!initialSlug) return;
     setSlug(initialSlug);
     if (contents.some((item) => item.slug === initialSlug)) return;
-    let active = true;
     fetch("/api/admin/content-search?" + new URLSearchParams({ q: initialSlug, page: "0" }), { cache: "no-store" })
       .then(async (response) => {
         const payload = await response.json();
@@ -67,7 +66,6 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
       setSeason("");
       return;
     }
-    let active = true;
     setSeasonLoading(true);
     try {
       const response = await fetch("/api/admin/seasons?slug=" + encodeURIComponent(slug), { cache: "no-store" });

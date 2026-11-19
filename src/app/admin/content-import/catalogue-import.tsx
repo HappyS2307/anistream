@@ -181,7 +181,7 @@ export function CatalogueImport() {
       </button>)}
       {selected && <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
         <strong>Selected: {selected.title}</strong>
-        <p style={{ color: "var(--muted)" }}>This one-click action imports TMDB title metadata, available seasons and episode details. Video/player links are a separate provider-dependent step; use Link import after checking approved sources. No stream is fabricated.</p>
+        <p style={{ color: "var(--muted)" }}>One click imports TMDB metadata, all available seasons and episode records, then checks HindiAnime for matching episode playback links. Link import depends on provider availability and an enabled matching server; missing or unsupported links are reported, never fabricated.</p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" className="button button--quiet" disabled={busy} onClick={() => void checkHindiAnime()}>Check HindiAnime</button><button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Please wait…" : "Import Everything · title + all episodes"}</button></div>
       </div>}
       <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 8, display: "grid", gap: 10 }}>

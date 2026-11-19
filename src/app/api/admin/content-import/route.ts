@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       trailer_url: trailer?.key ? `https://www.youtube.com/watch?v=${trailer.key}` : "",
     };
     if (!payload.title) return reply({ error: "TMDB returned no title." }, 502);
-    const rpc = access.client.rpc as unknown as (name: string, args: Record<string, unknown>) => Promise<{data: unknown;error: {message:string;code?:string}|null}>;
+    const rpc = access.client.rpc.bind(access.client) as (name: string, args: Record<string, unknown>) => Promise<{data: unknown;error: {message:string;code?:string}|null}>;
     const result = await rpc("import_tmdb_catalogue", { p_content: payload, p_seasons: seasonDetails });
     if (result.error) return reply({ error: result.error.code === "42501" ? "Import permission denied." : "Catalogue import failed. Check that the latest Supabase migration has been applied." }, 400);
     return reply({ imported: result.data, title: payload.title, tmdb_id: id }, 200);

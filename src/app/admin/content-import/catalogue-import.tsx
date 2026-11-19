@@ -17,6 +17,7 @@ export function CatalogueImport() {
   const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
   const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
   const [linkSummary, setLinkSummary] = useState<Record<string, unknown> | null>(null);
+  const [catalogueImported, setCatalogueImported] = useState(false);
 
   const [adapterHealth, setAdapterHealth] = useState<"checking" | "online" | "offline">("checking");
   const [adapterStats, setAdapterStats] = useState<Record<string, number> | null>(null);
@@ -36,7 +37,7 @@ export function CatalogueImport() {
 
   async function search() {
     if (!query.trim()) return;
-    setBusy(true); setNotice(""); setSelected(null); setSummary(null);
+    setBusy(true); setNotice(""); setSelected(null); setSummary(null); setCatalogueImported(false);
     try {
       const params = new URLSearchParams({ q: query.trim(), kind });
       const response = await fetch(`/api/admin/tmdb?${params}`, { cache: "no-store" });
@@ -153,11 +154,12 @@ export function CatalogueImport() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Import failed.");
       setSummary(data.imported ?? null);
+      setCatalogueImported(true);
       setNotice("Catalogue imported. Now checking provider playback links…");
       const links = await importProviderLinks(false);
       setNotice(links
         ? `Complete import finished. Catalogue, seasons and episodes saved; playback links: ${String(links.imported)} saved, ${String(links.skipped)} duplicates skipped, ${String(links.unsupported)} unsupported, ${String(links.failed)} failed. Review and publish the Draft title when ready.`
-        : "Catalogue and episode metadata imported. Provider playback links could not be completed; check the message above and use the playback-link retry control.");
+        : "Catalogue and episode metadata imported. Provider playback links could not be completed. Review the error and use the retry button below.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "Import failed."); }
     finally { setBusy(false); }
   }
@@ -175,7 +177,7 @@ export function CatalogueImport() {
         <input className="form-control" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search title on TMDB" aria-label="Search title on TMDB" style={{ flex: "1 1 240px" }} />
         <button className="button button--primary" disabled={busy || !query.trim()}>{busy ? "Please wait…" : "Search TMDB"}</button>
       </form>
-      {results.map(item => <button key={item.id} type="button" onClick={() => { setSelected(item); setSummary(null); }} className="surface-card" style={{ display: "flex", gap: 14, textAlign: "left", padding: 12, border: selected?.id === item.id ? "1px solid var(--accent)" : "1px solid var(--border)", cursor: "pointer" }}>
+      {results.map(item => <button key={item.id} type="button" onClick={() => { setSelected(item); setSummary(null); setCatalogueImported(false); setLinkSummary(null); }} className="surface-card" style={{ display: "flex", gap: 14, textAlign: "left", padding: 12, border: selected?.id === item.id ? "1px solid var(--accent)" : "1px solid var(--border)", cursor: "pointer" }}>
         {item.poster_url ? <img src={item.poster_url} alt="" width="64" height="92" style={{ objectFit: "cover", borderRadius: 8 }} /> : null}
         <span><strong>{item.title}</strong><br/><small style={{ color: "var(--muted)" }}>{item.release_date || "Release date unavailable"} · TMDB {item.id} · Rating {Number(item.rating ?? 0).toFixed(1)}</small><br/><small>{item.overview?.slice(0, 180)}</small></span>
       </button>)}
@@ -195,10 +197,10 @@ export function CatalogueImport() {
           <button type="button" className="button button--quiet" disabled={busy} onClick={() => void retryFailed()}>Retry failed items</button>
         </div>}
       </div>
-      {providerResult?.available === true && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 8 }}>
+      {catalogueImported && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 8 }}>
         <strong>Provider playback links</strong>
-        <p style={{ color: "var(--muted)", margin: 0 }}>After importing the title and episodes, this checks each provider episode endpoint in batches. Only exact HTTPS host matches against enabled Streaming servers are saved. No existing link is overwritten.</p>
-        <button type="button" className="button button--primary" disabled={busy} onClick={() => void importProviderLinks()}>{busy ? "Importing links…" : "Import available episode links"}</button>
+        <p style={{ color: "var(--muted)", margin: 0 }}>This can be retried safely after a partial import. Each batch checks provider episode endpoints; only exact HTTPS host matches against enabled Streaming servers are saved. Existing links are never overwritten.</p>
+        <button type="button" className="button button--primary" disabled={busy} onClick={() => void importProviderLinks()}>{busy ? "Importing links…" : linkSummary ? "Retry / recheck available episode links" : "Import available episode links"}</button>
         {linkSummary && <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>Episodes checked: {String(linkSummary.processed ?? 0)} / {String(linkSummary.total ?? 0)}\nLinks saved: {String(linkSummary.imported ?? 0)}\nDuplicates skipped: {String(linkSummary.skipped ?? 0)}\nUnsupported URLs: {String(linkSummary.unsupported ?? 0)}\nFailed lookups/saves: {String(linkSummary.failed ?? 0)}</pre>}
       </div>}
       {providerResult && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 6 }}>

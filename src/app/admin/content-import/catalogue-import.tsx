@@ -107,6 +107,7 @@ export function CatalogueImport() {
     try {
       let offset = 0;
       let totalImported = 0, totalSkipped = 0, totalFailed = 0, totalUnsupported = 0;
+      let totalProcessed = 0, totalEpisodes = 0;
       let done = false;
       let rounds = 0;
       while (!done && rounds < 1000) {
@@ -121,17 +122,19 @@ export function CatalogueImport() {
         totalSkipped += Number(data.skipped ?? 0);
         totalFailed += Number(data.failed ?? 0);
         totalUnsupported += Number(data.unsupported ?? 0);
-        setLinkSummary({ total: data.total, imported: totalImported, skipped: totalSkipped, failed: totalFailed, unsupported: totalUnsupported, processed: offset + Number(data.processed ?? 0) });
+        totalProcessed = Number(data.offset ?? offset) + Number(data.processed ?? 0);
+        totalEpisodes = Number(data.total ?? totalEpisodes);
+        setLinkSummary({ total: totalEpisodes, imported: totalImported, skipped: totalSkipped, failed: totalFailed, unsupported: totalUnsupported, processed: totalProcessed });
         done = data.done === true;
         if (!done) {
           const next = Number(data.next_offset);
           if (!Number.isSafeInteger(next) || next <= offset) throw new Error("Provider import returned an invalid continuation cursor.");
           offset = next;
         }
-        setNotice(`Playback links: ${offset + Number(data.processed ?? 0)}/${data.total ?? "?"} episodes checked · ${totalImported} saved · ${totalSkipped} duplicates skipped.`);
+        setNotice(`Playback links: ${totalProcessed}/${totalEpisodes || "?"} episodes checked · ${totalImported} saved · ${totalSkipped} duplicates skipped.`);
       }
       if (!done) throw new Error("Import stopped at the safety batch limit. You can retry after checking the saved links.");
-      const result = { imported: totalImported, skipped: totalSkipped, unsupported: totalUnsupported, failed: totalFailed };
+      const result = { total: totalEpisodes, processed: totalProcessed, imported: totalImported, skipped: totalSkipped, unsupported: totalUnsupported, failed: totalFailed };
       setLinkSummary(result);
       setNotice(`Playback import finished: ${totalImported} links saved, ${totalSkipped} duplicates skipped, ${totalUnsupported} unsupported URLs, ${totalFailed} failed episode lookups.`);
       return result;

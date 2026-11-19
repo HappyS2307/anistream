@@ -16,6 +16,8 @@ export function CatalogueImport() {
   const [jobId, setJobId] = useState("");
   const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
   const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
+  const [linkSummary, setLinkSummary] = useState<Record<string, unknown> | null>(null);
+  const [catalogueImported, setCatalogueImported] = useState(false);
 
   const [adapterHealth, setAdapterHealth] = useState<"checking" | "online" | "offline">("checking");
   const [adapterStats, setAdapterStats] = useState<Record<string, number> | null>(null);
@@ -35,7 +37,7 @@ export function CatalogueImport() {
 
   async function search() {
     if (!query.trim()) return;
-    setBusy(true); setNotice(""); setSelected(null); setSummary(null);
+    setBusy(true); setNotice(""); setSelected(null); setSummary(null); setCatalogueImported(false);
     try {
       const params = new URLSearchParams({ q: query.trim(), kind });
       const response = await fetch(`/api/admin/tmdb?${params}`, { cache: "no-store" });
@@ -85,7 +87,7 @@ export function CatalogueImport() {
 
   async function checkHindiAnime() {
     if (!selected) return;
-    setBusy(true); setProviderResult(null); setNotice("Checking HindiAnime availability…");
+    setBusy(true); setProviderResult(null); setLinkSummary(null); setNotice("Checking HindiAnime availability…");
     try {
       const params = new URLSearchParams({ tmdb_id: String(selected.id), kind });
       const response = await fetch(`/api/admin/hindianime?${params}`, { cache: "no-store" });
@@ -97,9 +99,51 @@ export function CatalogueImport() {
     finally { setBusy(false); }
   }
 
+  async function importProviderLinks(askConfirmation = true): Promise<Record<string, unknown> | null> {
+    if (!selected) return null;
+    const confirmed = !askConfirmation || window.confirm(`Import available HindiAnime playback links for "${selected.title}"? Only HTTPS URLs matching an enabled Streaming server hostname will be saved. Existing links will never be overwritten.`);
+    if (!confirmed) return null;
+    setBusy(true); setLinkSummary(null); setNotice("Checking provider playback links in small batches…");
+    try {
+      let offset = 0;
+      let totalImported = 0, totalSkipped = 0, totalFailed = 0, totalUnsupported = 0;
+      let done = false;
+      let rounds = 0;
+      while (!done && rounds < 1000) {
+        rounds++;
+        const response = await fetch("/api/admin/hindianime/links", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ tmdb_id: selected.id, kind, offset, limit: 20 }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Playback-link import failed.");
+        totalImported += Number(data.imported ?? 0);
+        totalSkipped += Number(data.skipped ?? 0);
+        totalFailed += Number(data.failed ?? 0);
+        totalUnsupported += Number(data.unsupported ?? 0);
+        setLinkSummary({ total: data.total, imported: totalImported, skipped: totalSkipped, failed: totalFailed, unsupported: totalUnsupported, processed: offset + Number(data.processed ?? 0) });
+        done = data.done === true;
+        if (!done) {
+          const next = Number(data.next_offset);
+          if (!Number.isSafeInteger(next) || next <= offset) throw new Error("Provider import returned an invalid continuation cursor.");
+          offset = next;
+        }
+        setNotice(`Playback links: ${offset + Number(data.processed ?? 0)}/${data.total ?? "?"} episodes checked · ${totalImported} saved · ${totalSkipped} duplicates skipped.`);
+      }
+      if (!done) throw new Error("Import stopped at the safety batch limit. You can retry after checking the saved links.");
+      const result = { imported: totalImported, skipped: totalSkipped, unsupported: totalUnsupported, failed: totalFailed };
+      setLinkSummary(result);
+      setNotice(`Playback import finished: ${totalImported} links saved, ${totalSkipped} duplicates skipped, ${totalUnsupported} unsupported URLs, ${totalFailed} failed episode lookups.`);
+      return result;
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Playback-link import stopped. Review the saved progress before retrying.");
+      return null;
+    } finally { setBusy(false); }
+  }
+
   async function importSelected() {
     if (!selected) return;
-    const confirmed = window.confirm(`Import "${selected.title}" with its TMDB seasons and episodes? The title will remain Draft and will not be public until you publish it.`);
+    const confirmed = window.confirm(`Import "${selected.title}" with all available TMDB seasons and episodes, then check and import matching HindiAnime playback links? The title will remain Draft. Only links matching enabled Streaming server hostnames will be saved; existing links will not be overwritten.`);
     if (!confirmed) return;
     setBusy(true); setNotice("Fetching metadata, seasons and episode details…"); setSummary(null);
     try {
@@ -110,15 +154,20 @@ export function CatalogueImport() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Import failed.");
       setSummary(data.imported ?? null);
-      setNotice("Import completed. Review the title and publish it manually when ready.");
+      setCatalogueImported(true);
+      setNotice("Catalogue imported. Now checking provider playback links…");
+      const links = await importProviderLinks(false);
+      setNotice(links
+        ? `Complete import finished. Catalogue, seasons and episodes saved; playback links: ${String(links.imported)} saved, ${String(links.skipped)} duplicates skipped, ${String(links.unsupported)} unsupported, ${String(links.failed)} failed. Review and publish the Draft title when ready.`
+        : "Catalogue and episode metadata imported. Provider playback links could not be completed. Review the error and use the retry button below.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "Import failed."); }
     finally { setBusy(false); }
   }
 
   return <section className="page-container" style={{ maxWidth: 980, paddingBlock: "38px 80px" }}>
     <p className="eyebrow">ADMIN TOOLS</p>
-    <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-.05em" }}>Catalogue auto import</h1>
-    <p style={{ color: "var(--muted)", maxWidth: 700 }}>Search TMDB, select a title, then import its metadata, seasons and episode titles. Imported titles stay Draft. Manual content creation remains available.</p>
+    <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-.05em" }}>One-click catalogue import</h1>
+    <p style={{ color: "var(--muted)", maxWidth: 700 }}>Search TMDB, select a title, then import its metadata, every available season and all episode records in one action. Imported titles stay Draft. Manual content creation remains available.</p>
     <div className="surface-card" style={{ padding: 22, display: "grid", gap: 14, marginTop: 24 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><span>HindiAnime provider: <strong>{adapterHealth === "checking" ? "Not checked" : adapterHealth === "online" ? "Online" : "Unavailable"}</strong>{adapterStats ? <small style={{ display: "block", color: "var(--muted)" }}>{adapterStats.series} series · {adapterStats.movies} movies · {adapterStats.total_episodes} episodes</small> : null}</span><button type="button" className="button button--quiet" onClick={() => void checkAdapterHealth()}>Check provider</button></div>
       <label>Content category<select className="form-control" value={kind} onChange={event => { setKind(event.target.value as typeof kind); setResults([]); setSelected(null); }} style={{ display: "block", width: "100%", marginTop: 6 }}>
@@ -128,14 +177,14 @@ export function CatalogueImport() {
         <input className="form-control" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search title on TMDB" aria-label="Search title on TMDB" style={{ flex: "1 1 240px" }} />
         <button className="button button--primary" disabled={busy || !query.trim()}>{busy ? "Please wait…" : "Search TMDB"}</button>
       </form>
-      {results.map(item => <button key={item.id} type="button" onClick={() => { setSelected(item); setSummary(null); }} className="surface-card" style={{ display: "flex", gap: 14, textAlign: "left", padding: 12, border: selected?.id === item.id ? "1px solid var(--accent)" : "1px solid var(--border)", cursor: "pointer" }}>
+      {results.map(item => <button key={item.id} type="button" onClick={() => { setSelected(item); setSummary(null); setCatalogueImported(false); setLinkSummary(null); }} className="surface-card" style={{ display: "flex", gap: 14, textAlign: "left", padding: 12, border: selected?.id === item.id ? "1px solid var(--accent)" : "1px solid var(--border)", cursor: "pointer" }}>
         {item.poster_url ? <img src={item.poster_url} alt="" width="64" height="92" style={{ objectFit: "cover", borderRadius: 8 }} /> : null}
         <span><strong>{item.title}</strong><br/><small style={{ color: "var(--muted)" }}>{item.release_date || "Release date unavailable"} · TMDB {item.id} · Rating {Number(item.rating ?? 0).toFixed(1)}</small><br/><small>{item.overview?.slice(0, 180)}</small></span>
       </button>)}
       {selected && <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
         <strong>Selected: {selected.title}</strong>
-        <p style={{ color: "var(--muted)" }}>This imports available TMDB season and episode records. It does not import or create video links.</p>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" className="button button--quiet" disabled={busy} onClick={() => void checkHindiAnime()}>Check HindiAnime</button><button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Please wait…" : "Import title + episodes"}</button></div>
+        <p style={{ color: "var(--muted)" }}>One click imports TMDB metadata, all available seasons and episode records, then checks HindiAnime for matching episode playback links. Link import depends on provider availability and an enabled matching server; missing or unsupported links are reported, never fabricated.</p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" className="button button--quiet" disabled={busy} onClick={() => void checkHindiAnime()}>Check HindiAnime</button><button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Please wait…" : "Import Everything · title + all episodes"}</button></div>
       </div>}
       <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 8, display: "grid", gap: 10 }}>
         <h2 style={{ fontSize: 20 }}>Bulk catalogue import</h2>
@@ -148,6 +197,12 @@ export function CatalogueImport() {
           <button type="button" className="button button--quiet" disabled={busy} onClick={() => void retryFailed()}>Retry failed items</button>
         </div>}
       </div>
+      {catalogueImported && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 8 }}>
+        <strong>Provider playback links</strong>
+        <p style={{ color: "var(--muted)", margin: 0 }}>This can be retried safely after a partial import. Each batch checks provider episode endpoints; only exact HTTPS host matches against enabled Streaming servers are saved. Existing links are never overwritten.</p>
+        <button type="button" className="button button--primary" disabled={busy} onClick={() => void importProviderLinks()}>{busy ? "Importing links…" : linkSummary ? "Retry / recheck available episode links" : "Import available episode links"}</button>
+        {linkSummary && <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>Episodes checked: {String(linkSummary.processed ?? 0)} / {String(linkSummary.total ?? 0)}\nLinks saved: {String(linkSummary.imported ?? 0)}\nDuplicates skipped: {String(linkSummary.skipped ?? 0)}\nUnsupported URLs: {String(linkSummary.unsupported ?? 0)}\nFailed lookups/saves: {String(linkSummary.failed ?? 0)}</pre>}
+      </div>}
       {providerResult && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 6 }}>
         <strong>HindiAnime availability</strong>
         <span>{providerResult.available ? "Match available" : "No match / unavailable"}</span>

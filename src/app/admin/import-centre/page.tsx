@@ -13,7 +13,7 @@ export default async function ImportCentrePage() {
         <p className="eyebrow">ANISTREAM / ADMIN / IMPORT CENTRE</p>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "end", gap: 16, flexWrap: "wrap" }}>
           <div><h1 style={{ fontSize: "clamp(2rem,5vw,3.2rem)", letterSpacing: "-.05em" }}>Import Centre</h1>
-          <p style={{ color: "var(--muted)", maxWidth: 720 }}>Import a complete catalogue record with all available seasons and episode metadata. Bulk catalogue jobs are available below. Streaming links are handled separately and only from configured, approved providers.</p></div>
+          <p style={{ color: "var(--muted)", maxWidth: 720 }}>Import a title, all available seasons and episodes, then automatically check HindiAnime for matching playback links. Bulk catalogue jobs are available below. Only verified links from enabled streaming servers are saved.</p></div>
           <Link className="button button--quiet" href="/admin/import">Open link import ↗</Link>
         </header>
         <div className="surface-card" style={{ padding: 18, marginBlock: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 12 }}>

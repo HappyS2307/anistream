@@ -98,10 +98,10 @@ export function CatalogueImport() {
     finally { setBusy(false); }
   }
 
-  async function importProviderLinks() {
-    if (!selected || !providerResult?.available) return;
-    const confirmed = window.confirm(`Import available HindiAnime playback links for "${selected.title}"? Only HTTPS URLs matching an enabled Streaming server hostname will be saved. Existing links will never be overwritten.`);
-    if (!confirmed) return;
+  async function importProviderLinks(askConfirmation = true): Promise<Record<string, unknown> | null> {
+    if (!selected) return null;
+    const confirmed = !askConfirmation || window.confirm(`Import available HindiAnime playback links for "${selected.title}"? Only HTTPS URLs matching an enabled Streaming server hostname will be saved. Existing links will never be overwritten.`);
+    if (!confirmed) return null;
     setBusy(true); setLinkSummary(null); setNotice("Checking provider playback links in small batches…");
     try {
       let offset = 0;
@@ -130,15 +130,19 @@ export function CatalogueImport() {
         setNotice(`Playback links: ${offset + Number(data.processed ?? 0)}/${data.total ?? "?"} episodes checked · ${totalImported} saved · ${totalSkipped} duplicates skipped.`);
       }
       if (!done) throw new Error("Import stopped at the safety batch limit. You can retry after checking the saved links.");
+      const result = { imported: totalImported, skipped: totalSkipped, unsupported: totalUnsupported, failed: totalFailed };
+      setLinkSummary(result);
       setNotice(`Playback import finished: ${totalImported} links saved, ${totalSkipped} duplicates skipped, ${totalUnsupported} unsupported URLs, ${totalFailed} failed episode lookups.`);
+      return result;
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Playback-link import stopped. Review the saved progress before retrying.");
+      return null;
     } finally { setBusy(false); }
   }
 
   async function importSelected() {
     if (!selected) return;
-    const confirmed = window.confirm(`Import "${selected.title}" with its TMDB seasons and episodes? The title will remain Draft and will not be public until you publish it.`);
+    const confirmed = window.confirm(`Import "${selected.title}" with all available TMDB seasons and episodes, then check and import matching HindiAnime playback links? The title will remain Draft. Only links matching enabled Streaming server hostnames will be saved; existing links will not be overwritten.`);
     if (!confirmed) return;
     setBusy(true); setNotice("Fetching metadata, seasons and episode details…"); setSummary(null);
     try {
@@ -149,7 +153,11 @@ export function CatalogueImport() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Import failed.");
       setSummary(data.imported ?? null);
-      setNotice("Title, seasons and available episode records imported. Review the result and publish manually when ready.");
+      setNotice("Catalogue imported. Now checking provider playback links…");
+      const links = await importProviderLinks(false);
+      setNotice(links
+        ? `Complete import finished. Catalogue, seasons and episodes saved; playback links: ${String(links.imported)} saved, ${String(links.skipped)} duplicates skipped, ${String(links.unsupported)} unsupported, ${String(links.failed)} failed. Review and publish the Draft title when ready.`
+        : "Catalogue and episode metadata imported. Provider playback links could not be completed; check the message above and use the playback-link retry control.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "Import failed."); }
     finally { setBusy(false); }
   }

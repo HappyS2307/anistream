@@ -15,7 +15,7 @@ export function CatalogueImport() {
   const [bulkIds, setBulkIds] = useState("");
   const [jobId, setJobId] = useState("");
   const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
-  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
+  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);\n  const [linkSummary, setLinkSummary] = useState<Record<string, unknown> | null>(null);
 
   const [adapterHealth, setAdapterHealth] = useState<"checking" | "online" | "offline">("checking");
   const [adapterStats, setAdapterStats] = useState<Record<string, number> | null>(null);
@@ -85,7 +85,7 @@ export function CatalogueImport() {
 
   async function checkHindiAnime() {
     if (!selected) return;
-    setBusy(true); setProviderResult(null); setNotice("Checking HindiAnime availability…");
+    setBusy(true); setProviderResult(null); setLinkSummary(null); setNotice("Checking HindiAnime availability…");
     try {
       const params = new URLSearchParams({ tmdb_id: String(selected.id), kind });
       const response = await fetch(`/api/admin/hindianime?${params}`, { cache: "no-store" });
@@ -95,6 +95,44 @@ export function CatalogueImport() {
       setNotice(data.available ? "HindiAnime match found. Review availability details below." : "No HindiAnime match found for this TMDB ID.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "HindiAnime lookup failed."); }
     finally { setBusy(false); }
+  }
+
+  async function importProviderLinks() {
+    if (!selected || !providerResult?.available) return;
+    const confirmed = window.confirm(`Import available HindiAnime playback links for "${selected.title}"? Only HTTPS URLs matching an enabled Streaming server hostname will be saved. Existing links will never be overwritten.`);
+    if (!confirmed) return;
+    setBusy(true); setLinkSummary(null); setNotice("Checking provider playback links in small batches…");
+    try {
+      let offset = 0;
+      let totalImported = 0, totalSkipped = 0, totalFailed = 0, totalUnsupported = 0;
+      let done = false;
+      let rounds = 0;
+      while (!done && rounds < 1000) {
+        rounds++;
+        const response = await fetch("/api/admin/hindianime/links", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ tmdb_id: selected.id, kind, offset, limit: 20 }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Playback-link import failed.");
+        totalImported += Number(data.imported ?? 0);
+        totalSkipped += Number(data.skipped ?? 0);
+        totalFailed += Number(data.failed ?? 0);
+        totalUnsupported += Number(data.unsupported ?? 0);
+        setLinkSummary({ total: data.total, imported: totalImported, skipped: totalSkipped, failed: totalFailed, unsupported: totalUnsupported, processed: offset + Number(data.processed ?? 0) });
+        done = data.done === true;
+        if (!done) {
+          const next = Number(data.next_offset);
+          if (!Number.isSafeInteger(next) || next <= offset) throw new Error("Provider import returned an invalid continuation cursor.");
+          offset = next;
+        }
+        setNotice(`Playback links: ${offset + Number(data.processed ?? 0)}/${data.total ?? "?"} episodes checked · ${totalImported} saved · ${totalSkipped} duplicates skipped.`);
+      }
+      if (!done) throw new Error("Import stopped at the safety batch limit. You can retry after checking the saved links.");
+      setNotice(`Playback import finished: ${totalImported} links saved, ${totalSkipped} duplicates skipped, ${totalUnsupported} unsupported URLs, ${totalFailed} failed episode lookups.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Playback-link import stopped. Review the saved progress before retrying.");
+    } finally { setBusy(false); }
   }
 
   async function importSelected() {
@@ -148,6 +186,12 @@ export function CatalogueImport() {
           <button type="button" className="button button--quiet" disabled={busy} onClick={() => void retryFailed()}>Retry failed items</button>
         </div>}
       </div>
+      {providerResult?.available === true && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 8 }}>
+        <strong>Provider playback links</strong>
+        <p style={{ color: "var(--muted)", margin: 0 }}>After importing the title and episodes, this checks each provider episode endpoint in batches. Only exact HTTPS host matches against enabled Streaming servers are saved. No existing link is overwritten.</p>
+        <button type="button" className="button button--primary" disabled={busy} onClick={() => void importProviderLinks()}>{busy ? "Importing links…" : "Import available episode links"}</button>
+        {linkSummary && <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>Episodes checked: {String(linkSummary.processed ?? 0)} / {String(linkSummary.total ?? 0)}\nLinks saved: {String(linkSummary.imported ?? 0)}\nDuplicates skipped: {String(linkSummary.skipped ?? 0)}\nUnsupported URLs: {String(linkSummary.unsupported ?? 0)}\nFailed lookups/saves: {String(linkSummary.failed ?? 0)}</pre>}
+      </div>}
       {providerResult && <div className="surface-card" style={{ padding: 14, display: "grid", gap: 6 }}>
         <strong>HindiAnime availability</strong>
         <span>{providerResult.available ? "Match available" : "No match / unavailable"}</span>

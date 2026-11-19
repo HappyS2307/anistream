@@ -55,6 +55,7 @@ export type Database = {
       content: Table<
         {
           id: string;
+          tmdb_id: number | null;
           slug: string;
           kind: ContentKind;
           title: string;
@@ -88,6 +89,7 @@ export type Database = {
         },
         {
           id?: string;
+          tmdb_id?: number | null;
           slug: string;
           kind: ContentKind;
           title: string;
@@ -121,6 +123,7 @@ export type Database = {
         },
         {
           id?: string;
+          tmdb_id?: number | null;
           slug?: string;
           kind?: ContentKind;
           title?: string;

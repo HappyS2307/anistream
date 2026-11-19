@@ -11,7 +11,7 @@ function MetricCard({ label, value, note, href }: Metric) {
 
 const modules = [
   { number: "01", title: "Content catalogue", description: "Create, edit, publish and organise titles across Anime, Drama, Web Series and Movies.", href: "/admin/content", state: "Available", active: true },
-  { number: "02", title: "Catalogue auto import", description: "Import TMDB metadata, seasons and episode titles. Imported records remain drafts until reviewed.", href: "/admin/content-import", state: "Available", active: true },
+  { number: "02", title: "Import Centre", description: "One place to import complete TMDB title metadata, seasons and episode records, run bulk catalogue jobs, and continue to approved playback-link tools. Imports stay Draft.", href: "/admin/import-centre", state: "Available", active: true },
   { number: "03", title: "Streaming servers", description: "Manage approved streaming server records and their availability. Existing playback protection remains unchanged.", href: "/admin/servers", state: "Available", active: true },
   { number: "04", title: "Episode playback links", description: "Attach approved streaming URLs to episodes using a registered server.", href: "/admin/import", state: "Link tools", active: true },
   { number: "05", title: "Seasons & episodes", description: "Create seasons, import episode links in bulk and manage episode titles.", href: "/admin/seasons", state: "Available", active: true },
@@ -68,7 +68,7 @@ export default async function AdminDashboardPage() {
       <main className="page-container admin-dashboard">
         <div className="admin-dashboard__topline"><p className="eyebrow"><span className="eyebrow__dot" /> ANISTREAM / CONTROL CENTRE</p><span className="admin-live"><i /> LIVE WORKSPACE</span></div>
         <header className="admin-hero">
-          <div><p className="admin-hero__kicker">ADMINISTRATOR WORKSPACE</p><h1>Control <span>everything.</span></h1><p className="admin-hero__description">Your catalogue, playback infrastructure and platform operations — brought together in one place.</p><div className="admin-hero__actions"><Link className="button button--primary" href="/admin/content">＋ Add content <span>↗</span></Link><Link className="button button--quiet" href="/admin/content-import">Auto import</Link><Link className="button button--quiet" href="/admin/seasons">Manage seasons</Link><Link className="button button--quiet" href="/admin/import">Bulk link import</Link><span className="admin-hero__identity">Signed in as <strong>{accountLabel}</strong></span></div></div>
+          <div><p className="admin-hero__kicker">ADMINISTRATOR WORKSPACE</p><h1>Control <span>everything.</span></h1><p className="admin-hero__description">Your catalogue, playback infrastructure and platform operations — brought together in one place.</p><div className="admin-hero__actions"><Link className="button button--primary" href="/admin/content">＋ Add content <span>↗</span></Link><Link className="button button--quiet" href="/admin/import-centre">Import Centre</Link><Link className="button button--quiet" href="/admin/seasons">Manage seasons</Link><Link className="button button--quiet" href="/admin/import">Bulk link import</Link><span className="admin-hero__identity">Signed in as <strong>{accountLabel}</strong></span></div></div>
           <div className="admin-hero__seal" aria-hidden="true"><span>AS</span><small>CONTROL<br/>CENTRE</small></div>
         </header>
 

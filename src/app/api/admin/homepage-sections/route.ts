@@ -14,9 +14,9 @@ export async function PATCH(request: Request) {
   if(typeof row.section_key!=="string"||!allowed.has(row.section_key)||seen.has(row.section_key)||typeof row.title!=="string"||row.title.trim().length<1||row.title.trim().length>80||typeof row.enabled!=="boolean"||!Number.isInteger(row.sort_order)||Number(row.sort_order)<0) return NextResponse.json({error:"Check section names, visibility and ordering."},{status:400});
   seen.add(row.section_key); rows.push({section_key:row.section_key,title:row.title.trim(),enabled:row.enabled,sort_order:Number(row.sort_order)});
  }
- const client=access.client as any;
+ const client=access.client;
  const results=await Promise.all(rows.map(row=>client.from("homepage_sections").update({title:row.title,enabled:row.enabled,sort_order:row.sort_order}).eq("section_key",row.section_key)));
- const failed=results.find((result:any)=>result.error);
- if(failed) return NextResponse.json({error:failed.error.message},{status:400});
+ const failed=results.find((result)=>result.error);
+ if(failed?.error) return NextResponse.json({error:failed.error.message},{status:400});
  return NextResponse.json({ok:true});
 }

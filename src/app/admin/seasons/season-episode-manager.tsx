@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useMemo,useRef,useState} from "react";
+import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
 
 type C={id:string;slug:string;title:string;kind:string};
@@ -9,7 +9,7 @@ type E={id:string;season_id:string;episode_number:number;title:string;synopsis:s
 export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const [query,setQuery]=useState("");
  const [searchResults,setSearchResults]=useState<C[]>(contents);
- const [searchPage,setSearchPage]=useState(0);
+ const searchPage=useRef(0);
  const [searchHasMore,setSearchHasMore]=useState(false);
  const [searchBusy,setSearchBusy]=useState(false);
  const [slug,setSlug]=useState("");
@@ -27,24 +27,24 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
  const current=seasons.find(x=>x.id===seasonId);
  const visible=useMemo(()=>episodes.filter(x=>x.season_id===seasonId).sort((a,b)=>a.episode_number-b.episode_number),[episodes,seasonId]);
  const filtered=searchResults;
- async function searchTitles(append=false){
+ const searchTitles=useCallback(async (append=false)=>{
   const requestId=++searchRequest.current;
   setSearchBusy(true);setError(false);setMessage("");
-  const page=append?searchPage+1:0;
+  const page=append?searchPage.current+1:0;
   try{
    const r=await fetch("/api/admin/content-search?"+new URLSearchParams({q:query.trim(),page:String(page)}),{cache:"no-store"});
    const d=await r.json();if(!r.ok)throw Error(d.error||"Could not search titles");
    if(requestId!==searchRequest.current)return;
    const found=(d.items||[]) as C[];
    setSearchResults(old=>append?[...old,...found.filter(x=>!old.some(y=>y.id===x.id))]:found);
-   setSearchPage(page);setSearchHasMore(Boolean(d.hasMore));
+   searchPage.current=page;setSearchHasMore(Boolean(d.hasMore));
    if(!append&&!found.some(x=>x.slug===slug))setSlug(found[0]?.slug||"");
    if(!found.length&&!append)setMessage("No matching titles. Try another search.");
   }catch(e){if(requestId===searchRequest.current){setError(true);setMessage(e instanceof Error?e.message:"Search failed");}}
   finally{if(requestId===searchRequest.current)setSearchBusy(false);}
- }
+ },[query,slug]);
 
- async function load(value=slug){
+ const load=useCallback(async (value=slug)=>{
   if(!value){setSeasons([]);setEpisodes([]);setSeasonId("");return;}
   setBusy(true);
   try{
@@ -55,9 +55,9 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    setSeasonNo(String(Math.max(0,...(d.seasons||[]).map((s:S)=>s.season_number))+1));
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:"Load failed");}
   finally{setBusy(false);}
- }
- useEffect(()=>{void load();},[slug]);
- useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[query]);
+ },[slug]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
+ useEffect(()=>{const timer=window.setTimeout(()=>{void searchTitles(false);},180);return()=>window.clearTimeout(timer);},[searchTitles]);
 
  async function request(body:Record<string,unknown>){
   const r=await fetch("/api/admin/seasons",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
@@ -96,6 +96,7 @@ export function SeasonEpisodeManager({contents}:{contents:C[]}){
    <span className="season-step">STEP 1 · CHOOSE A TITLE</span><h2>Which title do you want to manage?</h2>
    <input className="form-control season-title-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Type a title name to search…" aria-label="Search titles"/>{searchBusy&&<small className="season-search-status">Searching catalogue…</small>}
    <select className="form-control" value={slug} onChange={e=>setSlug(e.target.value)}><option value="">Choose a title…</option>{filtered.map(c=><option key={c.id} value={c.slug}>{c.title} · {c.kind.replace("_"," ")}</option>)}</select>
+   {searchHasMore&&<button type="button" className="button" disabled={searchBusy} onClick={()=>void searchTitles(true)}>Load more titles</button>}
    {selected&&<p className="season-selected-title">Managing: <strong>{selected.title}</strong> · {seasons.length} seasons · {episodes.length} episodes</p>}
   </section>
 

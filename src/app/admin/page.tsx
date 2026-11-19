@@ -11,13 +11,14 @@ function MetricCard({ label, value, note, href }: Metric) {
 
 const modules = [
   { number: "01", title: "Content catalogue", description: "Create, edit, publish and organise titles across Anime, Drama, Web Series and Movies.", href: "/admin/content", state: "Available", active: true },
-  { number: "02", title: "Streaming servers", description: "Manage approved streaming server records and their availability. Existing playback protection remains unchanged.", href: "/admin/servers", state: "Available", active: true },
-  { number: "03", title: "Episode playback links", description: "Attach approved streaming URLs to episodes using a registered server.", href: "/admin/import", state: "Link tools", active: true },
-  { number: "04", title: "Seasons & episodes", description: "Create seasons, import episode links in bulk and manage episode titles.", href: "/admin/seasons", state: "Available", active: true },
-  { number: "05", title: "User management", description: "Grant and revoke admin access and manage granular permissions.", href: "/admin/users", state: "Super Admin only", active: true },
-  { number: "06", title: "Featured homepage title", description: "Choose the published title displayed in the homepage hero from the content editor.", href: "/admin/content", state: "Available", active: true },
-  { number: "07", title: "Homepage studio", description: "Rename, reorder, show or hide homepage sections.", href: "/admin/homepage", state: "Available", active: true },
-  { number: "08", title: "Customisation studio", description: "Configure AniStream branding, visual themes, layout and responsive presentation.", state: "In development" },
+  { number: "02", title: "Catalogue auto import", description: "Import TMDB metadata, seasons and episode titles. Imported records remain drafts until reviewed.", href: "/admin/content-import", state: "Available", active: true },
+  { number: "03", title: "Streaming servers", description: "Manage approved streaming server records and their availability. Existing playback protection remains unchanged.", href: "/admin/servers", state: "Available", active: true },
+  { number: "04", title: "Episode playback links", description: "Attach approved streaming URLs to episodes using a registered server.", href: "/admin/import", state: "Link tools", active: true },
+  { number: "05", title: "Seasons & episodes", description: "Create seasons, import episode links in bulk and manage episode titles.", href: "/admin/seasons", state: "Available", active: true },
+  { number: "06", title: "User management", description: "Grant and revoke admin access and manage granular permissions.", href: "/admin/users", state: "Super Admin only", active: true },
+  { number: "07", title: "Featured homepage title", description: "Choose the published title displayed in the homepage hero from the content editor.", href: "/admin/content", state: "Available", active: true },
+  { number: "08", title: "Homepage studio", description: "Rename, reorder, show or hide homepage sections.", href: "/admin/homepage", state: "Available", active: true },
+  { number: "09", title: "Customisation studio", description: "Configure AniStream branding, visual themes, layout and responsive presentation.", state: "In development" },
 ];
 
 export default async function AdminDashboardPage() {
@@ -67,7 +68,7 @@ export default async function AdminDashboardPage() {
       <main className="page-container admin-dashboard">
         <div className="admin-dashboard__topline"><p className="eyebrow"><span className="eyebrow__dot" /> ANISTREAM / CONTROL CENTRE</p><span className="admin-live"><i /> LIVE WORKSPACE</span></div>
         <header className="admin-hero">
-          <div><p className="admin-hero__kicker">ADMINISTRATOR WORKSPACE</p><h1>Control <span>everything.</span></h1><p className="admin-hero__description">Your catalogue, playback infrastructure and platform operations — brought together in one place.</p><div className="admin-hero__actions"><Link className="button button--primary" href="/admin/content">＋ Add content <span>↗</span></Link><Link className="button button--quiet" href="/admin/seasons">Manage seasons</Link><Link className="button button--quiet" href="/admin/import">Bulk link import</Link><span className="admin-hero__identity">Signed in as <strong>{accountLabel}</strong></span></div></div>
+          <div><p className="admin-hero__kicker">ADMINISTRATOR WORKSPACE</p><h1>Control <span>everything.</span></h1><p className="admin-hero__description">Your catalogue, playback infrastructure and platform operations — brought together in one place.</p><div className="admin-hero__actions"><Link className="button button--primary" href="/admin/content">＋ Add content <span>↗</span></Link><Link className="button button--quiet" href="/admin/content-import">Auto import</Link><Link className="button button--quiet" href="/admin/seasons">Manage seasons</Link><Link className="button button--quiet" href="/admin/import">Bulk link import</Link><span className="admin-hero__identity">Signed in as <strong>{accountLabel}</strong></span></div></div>
           <div className="admin-hero__seal" aria-hidden="true"><span>AS</span><small>CONTROL<br/>CENTRE</small></div>
         </header>
 

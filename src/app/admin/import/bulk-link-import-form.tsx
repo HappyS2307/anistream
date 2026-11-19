@@ -33,6 +33,9 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
   const selected = contentOptions.find((item) => item.slug === slug) ?? contents.find((item) => item.slug === slug);
 
   useEffect(() => {
+    let active = true;
+    const syncInitialSelection = async () => {
+    await Promise.resolve();
     const params = new URLSearchParams(window.location.search);
     const initialSlug = params.get("content");
     const initialSeason = params.get("season");
@@ -40,7 +43,6 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
     if (!initialSlug) return;
     setSlug(initialSlug);
     if (contents.some((item) => item.slug === initialSlug)) return;
-    let active = true;
     fetch("/api/admin/content-search?" + new URLSearchParams({ q: initialSlug, page: "0" }), { cache: "no-store" })
       .then(async (response) => {
         const payload = await response.json();
@@ -50,30 +52,38 @@ export function BulkLinkImportForm({ contents, servers, providers }: Props) {
         setContentOptions((current) => [...items, ...current.filter((item) => !items.some((match) => match.slug === item.slug))]);
       })
       .catch(() => { if (active) setNotice("Could not preselect the title. Search for it below."); });
+    };
+    void syncInitialSelection();
     return () => { active = false; };
   }, [contents]);
 
   useEffect(() => {
+    let active = true;
+    const loadSeasonOptions = async () => {
+    await Promise.resolve();
     if (!slug || selected?.kind === "movie") {
       setSeasonOptions([]);
       setSeason("");
       return;
     }
-    let active = true;
     setSeasonLoading(true);
-    fetch("/api/admin/seasons?slug=" + encodeURIComponent(slug), { cache: "no-store" })
-      .then(async (response) => {
+    try {
+      const response = await fetch("/api/admin/seasons?slug=" + encodeURIComponent(slug), { cache: "no-store" });
         const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error ?? "Could not load seasons.");
-        if (!active) return;
-        const options = (payload.seasons ?? []) as Array<{season_number:number;title:string|null}>;
-        setSeasonOptions(options);
-        setSeason((current) => options.some((item) => String(item.season_number) === current)
-          ? current
-          : options.length ? String(options[0].season_number) : "");
-      })
-      .catch(() => { if (active) { setSeasonOptions([]); setSeason(""); } })
-      .finally(() => { if (active) setSeasonLoading(false); });
+      if (!response.ok) throw new Error(payload.error ?? "Could not load seasons.");
+      if (!active) return;
+      const options = (payload.seasons ?? []) as Array<{season_number:number;title:string|null}>;
+      setSeasonOptions(options);
+      setSeason((current) => options.some((item) => String(item.season_number) === current)
+        ? current
+        : options.length ? String(options[0].season_number) : "");
+    } catch {
+      if (active) { setSeasonOptions([]); setSeason(""); }
+    } finally {
+      if (active) setSeasonLoading(false);
+    }
+    };
+    void loadSeasonOptions();
     return () => { active = false; };
   }, [slug, selected?.kind]);
 

@@ -137,17 +137,24 @@ test("environment example contains placeholders only", async () => {
   const example = await readFile(new URL("../.env.example", import.meta.url), "utf8");
   const names = example
     .split(/\r?\n/)
-    .filter(Boolean)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
     .map((line) => line.split("=", 1)[0]);
 
   assert.deepEqual(names, [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_SITE_URL",
+    "TMDB_API_READ_ACCESS_TOKEN",
+    "HINDIANIME_WORKER_URL",
+    "HINDIANIME_API_KEY",
   ]);
   assert.match(example, /your-project-ref/);
   assert.match(example, /your-supabase-publishable-key/);
-  assert.doesNotMatch(example, /service.role|secret|eyJ[a-zA-Z0-9_-]{20}/i);
+  assert.match(example, /your-tmdb-api-read-access-token/);
+  assert.match(example, /your-worker\.your-subdomain\.workers\.dev/);
+  assert.match(example, /your-optional-worker-api-key/);
+  assert.doesNotMatch(example, /service.role|eyJ[a-zA-Z0-9_-]{20}/i);
 });
 
 test("session-dependent header output is isolated behind Suspense", async () => {

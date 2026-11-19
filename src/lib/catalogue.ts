@@ -109,7 +109,7 @@ const defaultHomepageSections:HomepageSectionSetting[] = [
 export async function getHomepageSections():Promise<HomepageSectionSetting[]> {
  const supabase=await createSupabaseServerClient();
  if(!supabase)return defaultHomepageSections;
- const {data,error}=await (supabase as any).from("homepage_sections").select("section_key,title,enabled,sort_order").order("sort_order");
+ const {data,error}=await (supabase).from("homepage_sections").select("section_key,title,enabled,sort_order").order("sort_order");
  if(error||!data||data.length!==6)return defaultHomepageSections;
  return data as HomepageSectionSetting[];
 }

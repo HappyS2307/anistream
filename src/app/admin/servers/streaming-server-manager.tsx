@@ -16,7 +16,7 @@ export function StreamingServerManager({ initialItems }: { initialItems: Server[
     if (!response.ok) throw new Error(data.error ?? "Could not refresh servers.");
     setItems(data.items ?? []);
   },[]);
-  useEffect(()=>{ void refresh().catch(e=>{setError(true);setMessage(e instanceof Error?e.message:"Could not load servers.");}); },[refresh]);
+  useEffect(()=>{ const timer=window.setTimeout(()=>{ void refresh().catch(e=>{setError(true);setMessage(e instanceof Error?e.message:"Could not load servers.");}); },0); return ()=>window.clearTimeout(timer); },[refresh]);
   async function create(event:React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setMessage(""); setError(false);
     try {

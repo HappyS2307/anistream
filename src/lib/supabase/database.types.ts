@@ -14,6 +14,21 @@ type Table<Row, Insert, Update> = {
 export type Database = {
   public: {
     Tables: {
+      homepage_sections: Table<
+        { section_key: string; title: string; enabled: boolean; sort_order: number; updated_at: string },
+        { section_key: string; title: string; enabled?: boolean; sort_order?: number; updated_at?: string },
+        { section_key?: string; title?: string; enabled?: boolean; sort_order?: number; updated_at?: string }
+      >;
+      catalogue_import_jobs: Table<
+        { id: string; actor_id: string; kind: ContentKind; status: "queued" | "processing" | "completed" | "partial" | "failed" | "cancelled"; total_items: number; processed_items: number; imported_items: number; failed_items: number; created_at: string; updated_at: string },
+        { id?: string; actor_id: string; kind: ContentKind; status?: "queued" | "processing" | "completed" | "partial" | "failed" | "cancelled"; total_items: number; processed_items?: number; imported_items?: number; failed_items?: number; created_at?: string; updated_at?: string },
+        { id?: string; actor_id?: string; kind?: ContentKind; status?: "queued" | "processing" | "completed" | "partial" | "failed" | "cancelled"; total_items?: number; processed_items?: number; imported_items?: number; failed_items?: number; created_at?: string; updated_at?: string }
+      >;
+      catalogue_import_job_items: Table<
+        { id: string; job_id: string; tmdb_id: number; status: "pending" | "processing" | "imported" | "failed"; error_message: string | null; attempts: number; updated_at: string },
+        { id?: string; job_id: string; tmdb_id: number; status?: "pending" | "processing" | "imported" | "failed"; error_message?: string | null; attempts?: number; updated_at?: string },
+        { id?: string; job_id?: string; tmdb_id?: number; status?: "pending" | "processing" | "imported" | "failed"; error_message?: string | null; attempts?: number; updated_at?: string }
+      >;
       profiles: Table<
         {
           user_id: string;

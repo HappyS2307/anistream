@@ -15,7 +15,8 @@ export function CatalogueImport() {
   const [bulkIds, setBulkIds] = useState("");
   const [jobId, setJobId] = useState("");
   const [jobStatus, setJobStatus] = useState<Record<string, unknown> | null>(null);
-  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);\n  const [linkSummary, setLinkSummary] = useState<Record<string, unknown> | null>(null);
+  const [providerResult, setProviderResult] = useState<Record<string, unknown> | null>(null);
+  const [linkSummary, setLinkSummary] = useState<Record<string, unknown> | null>(null);
 
   const [adapterHealth, setAdapterHealth] = useState<"checking" | "online" | "offline">("checking");
   const [adapterStats, setAdapterStats] = useState<Record<string, number> | null>(null);

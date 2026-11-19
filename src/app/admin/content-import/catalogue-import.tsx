@@ -110,15 +110,15 @@ export function CatalogueImport() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Import failed.");
       setSummary(data.imported ?? null);
-      setNotice("Import completed. Review the title and publish it manually when ready.");
+      setNotice("Title, seasons and available episode records imported. Review the result and publish manually when ready.");
     } catch (error) { setNotice(error instanceof Error ? error.message : "Import failed."); }
     finally { setBusy(false); }
   }
 
   return <section className="page-container" style={{ maxWidth: 980, paddingBlock: "38px 80px" }}>
     <p className="eyebrow">ADMIN TOOLS</p>
-    <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-.05em" }}>Catalogue auto import</h1>
-    <p style={{ color: "var(--muted)", maxWidth: 700 }}>Search TMDB, select a title, then import its metadata, seasons and episode titles. Imported titles stay Draft. Manual content creation remains available.</p>
+    <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-.05em" }}>One-click catalogue import</h1>
+    <p style={{ color: "var(--muted)", maxWidth: 700 }}>Search TMDB, select a title, then import its metadata, every available season and all episode records in one action. Imported titles stay Draft. Manual content creation remains available.</p>
     <div className="surface-card" style={{ padding: 22, display: "grid", gap: 14, marginTop: 24 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><span>HindiAnime provider: <strong>{adapterHealth === "checking" ? "Not checked" : adapterHealth === "online" ? "Online" : "Unavailable"}</strong>{adapterStats ? <small style={{ display: "block", color: "var(--muted)" }}>{adapterStats.series} series · {adapterStats.movies} movies · {adapterStats.total_episodes} episodes</small> : null}</span><button type="button" className="button button--quiet" onClick={() => void checkAdapterHealth()}>Check provider</button></div>
       <label>Content category<select className="form-control" value={kind} onChange={event => { setKind(event.target.value as typeof kind); setResults([]); setSelected(null); }} style={{ display: "block", width: "100%", marginTop: 6 }}>
@@ -134,8 +134,8 @@ export function CatalogueImport() {
       </button>)}
       {selected && <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
         <strong>Selected: {selected.title}</strong>
-        <p style={{ color: "var(--muted)" }}>This imports available TMDB season and episode records. It does not import or create video links.</p>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" className="button button--quiet" disabled={busy} onClick={() => void checkHindiAnime()}>Check HindiAnime</button><button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Please wait…" : "Import title + episodes"}</button></div>
+        <p style={{ color: "var(--muted)" }}>This one-click action imports TMDB title metadata, available seasons and episode details. Video/player links are a separate provider-dependent step; use Link import after checking approved sources. No stream is fabricated.</p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button type="button" className="button button--quiet" disabled={busy} onClick={() => void checkHindiAnime()}>Check HindiAnime</button><button type="button" className="button button--primary" disabled={busy} onClick={() => void importSelected()}>{busy ? "Please wait…" : "Import Everything · title + all episodes"}</button></div>
       </div>}
       <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 8, display: "grid", gap: 10 }}>
         <h2 style={{ fontSize: 20 }}>Bulk catalogue import</h2>

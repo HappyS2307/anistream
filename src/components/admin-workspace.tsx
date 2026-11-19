@@ -11,6 +11,7 @@ const groups=[
  {label:"CONTENT",items:[
   {label:"Content library",href:"/admin/content",icon:"▤",hint:"Titles & metadata"},
   {label:"Import Centre",href:"/admin/import-centre",icon:"⇩",hint:"One-click catalogue & episodes"},
+  {label:"Import Centre",href:"/admin/import-centre",icon:"⇩",hint:"One-click catalogue & episodes"},
   {label:"Homepage studio",href:"/admin/homepage",icon:"⌂",hint:"Sections & ordering"},
   {label:"Seasons & episodes",href:"/admin/seasons",icon:"▣",hint:"Episode structure"},
  ]},
